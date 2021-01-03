@@ -1,1 +1,1 @@
-# tetris
+# my tetris game made in c with ncurses lib 
