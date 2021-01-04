@@ -5,8 +5,11 @@
 #include <ctype.h>
 #include <locale.h>
 
+#include "common.h"
+#include "game.h"
+#include "menu.h"
+
 #define GRASS_PAIR     1
-//#define EMPTY_PAIR     1
 #define WATER_PAIR     2
 #define MOUNTAIN_PAIR  3
 #define PLAYER_PAIR    4
@@ -25,25 +28,26 @@ int menu(int game_active);
 int game();
 
 int main() {
-    setlocale(LC_ALL, "");
-    initscr();
-    keypad(stdscr, TRUE);
-    curs_set(0);
-    noecho();
-    start_color();
-    init_pair(GRASS_PAIR, COLOR_YELLOW, COLOR_GREEN);
-    init_pair(WATER_PAIR, COLOR_CYAN, COLOR_BLUE);
-    init_pair(MOUNTAIN_PAIR, COLOR_BLUE, COLOR_WHITE);
-    init_pair(PLAYER_PAIR, COLOR_RED, COLOR_MAGENTA);
+//    setlocale(LC_ALL, "");
+//    initscr();
+//    keypad(stdscr, TRUE);
+//    curs_set(0);
+//    noecho();
+//    start_color();
+//    init_pair(GRASS_PAIR, COLOR_YELLOW, COLOR_GREEN);
+//    init_pair(WATER_PAIR, COLOR_CYAN, COLOR_BLUE);
+//    init_pair(MOUNTAIN_PAIR, COLOR_BLUE, COLOR_WHITE);
+//    init_pair(PLAYER_PAIR, COLOR_RED, COLOR_MAGENTA);
 
+    test();
 //    game();
-    menu(0);
-
-    clear();
-    addstr("press any key to exit...");
-    getch();
-    endwin();
-    return 0;
+//    menu(0);
+//
+//    clear();
+//    addstr("press any key to exit...");
+//    getch();
+//    endwin();
+//    return 0;
 }
 
 void draw_menu(int highlight, int game_active) {
