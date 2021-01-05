@@ -3,7 +3,7 @@
 #include <curses.h>
 #include "common.h"
 
-int draw_menu(WINDOW *wmenu, int highlight, int game_active);
+void draw_menu(WINDOW *wmenu, menuptr menu_data);
 
 void draw_board(WINDOW *board, game_data data);
 
@@ -15,6 +15,8 @@ void draw_next_block(WINDOW *block_window, block next_block);
 
 void draw_game(viewptr wgame, dataptr data);
 
-WINDOW * menu_resize(WINDOW * reset, int highlight, int game_active);
+void game_resize(viewptr view, dataptr data);
+
+WINDOW * menu_resize(WINDOW * reset, menuptr menu_data);
 
 #endif

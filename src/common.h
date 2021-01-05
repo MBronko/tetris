@@ -36,6 +36,15 @@ typedef struct block {
     pixelptr board[BLOCK_MAX_SIZE][BLOCK_MAX_SIZE];
 } block;
 
+typedef struct menu_data *menuptr;
+typedef struct menu_data{
+    char *rand_header;
+    int game_active;
+    char **options;
+    int n_options;
+    int highlight;
+} menu_data;
+
 typedef struct game_data *dataptr;
 typedef struct game_data{
     pixelptr board[BOARD_HEIGHT_TOTAL][BOARD_WIDTH];

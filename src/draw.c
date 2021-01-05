@@ -1,45 +1,45 @@
 #include "draw.h"
 #include <curses.h>
 #include "common.h"
+#include <stdlib.h>
+//#include <stdio.h>
+//#include <time.h>
 
-int draw_menu(WINDOW *wmenu, int highlight, int game_active){
-    char *headers[] = {
-            "Pause",
-            "Hello!!",
-            "To moje bagno!",
-            "Siemanko",
-            "No hejka",
-            "Gitara siema"
-    };
-    int n_headers = sizeof(headers) / sizeof(headers[0]);
-    char *choices[] = {
-            "Resume",
-            "New Game",
-            "Quit",
-    };
-    int n_choices = sizeof(choices) / sizeof(choices[0]);
+void draw_menu(WINDOW *wmenu, menuptr menu_data){
+    wclear(wmenu);
+//    char *choices[] = {
+//            "Resume",
+//            "New Game",
+//            "Quit",
+//    };
+//    int n_choices = sizeof(choices) / sizeof(choices[0]);
 
 
     int x = 2, y = 2;
     box(wmenu, 0, 0);
-    for (int i = 0; i < n_choices; ++i) {
-        if (!game_active && i == 0) {
+
+    wattron(wmenu, A_BOLD);
+    mvwprintw(wmenu, y, x, "%s", menu_data->rand_header);
+    wattroff(wmenu, A_BOLD);
+    y+=2;
+
+    for (int i = 0; i < menu_data->n_options; ++i) {
+        if (!menu_data->game_active && i == 0) {
             wattron(wmenu, A_DIM);
-            mvwprintw(wmenu, y, x, "%s", choices[i]);
+            mvwprintw(wmenu, y, x, "%s", menu_data->options[i]);
             wattroff(wmenu, A_DIM);
 
-        } else if (highlight == i + 1) {
+        } else if (menu_data->highlight == i + 1) {
             wattron(wmenu, A_REVERSE);
-            mvwprintw(wmenu, y, x, "%s", choices[i]);
+            mvwprintw(wmenu, y, x, "%s", menu_data->options[i]);
             wattroff(wmenu, A_REVERSE);
         } else
-            mvwprintw(wmenu, y, x, "%s", choices[i]);
-        ++y;
+            mvwprintw(wmenu, y, x, "%s", menu_data->options[i]);
+        y++;
     }
     clear();
     refresh();
     wrefresh(wmenu);
-    return n_choices;
 }
 
 void draw_board(WINDOW *board, game_data data){
@@ -92,7 +92,11 @@ void draw_game(viewptr wgame, dataptr data){
     wrefresh(wgame->scoreboard);
 }
 
-WINDOW * menu_resize(WINDOW * reset, int highlight, int game_active){
+void game_resize(viewptr view, dataptr data){
+
+}
+
+WINDOW * menu_resize(WINDOW * reset, menuptr menu_data){
     int x, y, new_x, new_y;
     char msg[] = "Window is too small";
 
@@ -106,7 +110,7 @@ WINDOW * menu_resize(WINDOW * reset, int highlight, int game_active){
         else{
             reset = newwin(MENU_HEIGHT,MENU_WIDTH,new_y,new_x);
         }
-        draw_menu(reset, highlight, game_active);
+        draw_menu(reset, menu_data);
         return reset;
     };
     int msg_len = sizeof(msg)/sizeof(msg[0]);
