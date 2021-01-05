@@ -9,9 +9,9 @@
 #include "game.h"
 #include "draw.h"
 
-void reset_game_data(game_data *data) {
+void reset_game_data(dataptr data) {
     data->score = 0;
-    for (int x = 0; x < BOARD_HEIGHT; x++) {
+    for (int x = 0; x < BOARD_HEIGHT_TOTAL; x++) {
         for (int y = 0; y < BOARD_WIDTH; y++) {
             free(data->board[x][y]);
             data->board[x][y] = NULL;
@@ -27,21 +27,30 @@ void reset_game_data(game_data *data) {
 
 void menu() {
     int highlight = 2, game_active = 0, quit = 0;
-    int c;
+    int c, win_too_small = 0;
 
-    char *choices[] = {
-            "Resume",
-            "New Game",
-            "Quit",
-    };
-    int n_choices = sizeof(choices) / sizeof(choices[0]);
 
-    draw_menu(stdscr, highlight, game_active, choices, n_choices);
+    viewptr wgame = calloc(1, sizeof(game_view));
+    wgame->board = newwin(BOARD_HEIGHT_VISIBLE, BOARD_WIDTH, 0, 0);
+    wgame->next_block = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, 0);
+    wgame->legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, 0);
+    wgame->scoreboard = newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, 0);
 
-    game_data *data = calloc(1, sizeof(game_data));
+    WINDOW *wmenu = newwin(MENU_HEIGHT,MENU_WIDTH,0,0);
+    wmenu = menu_resize(wmenu, highlight, game_active);
+
+    dataptr data = calloc(1, sizeof(game_data));
     data->next_block = calloc(1, sizeof(block));
+//    draw_game(wgame, data);
+//    getch();
 
+    int n_choices = draw_menu(wmenu, highlight, game_active);
     while (!quit && (c = getch()) != 'q') {
+        if(c == KEY_RESIZE){
+            wmenu = menu_resize(wmenu, highlight, game_active);
+            continue;
+        }
+        if(wmenu == NULL) continue;
         switch (tolower(c)) {
             case KEY_UP:
             case 'w':
@@ -57,25 +66,20 @@ void menu() {
                         reset_game_data(data);
                     case 1:
                         game_active = 1;
+                        highlight = 1;
                         game(data);
                         break;
                     case 3:
                         quit = 1;
-                        continue;
                     default:
                         continue;
                 }
                 break;
-//                if (menu_option(highlight)) {
-//                    if (game_active) return 1;
-//                    do { new_game = game(); } while (new_game);
-//                } else {
-//                    return 0;
-//                }
             default:
                 continue;
         }
-        draw_menu(stdscr, highlight, game_active, choices, n_choices);
+//        wclear(wmenu);
+        draw_menu(wmenu, highlight, game_active);
     }
     reset_game_data(data);
     free(data->next_block);

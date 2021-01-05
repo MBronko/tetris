@@ -1,11 +1,25 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define BOARD_WIDTH 10
+#define MENU_WIDTH 20
+#define MENU_HEIGHT 10
+#define MENU_START_Y 5
+#define MENU_START_X 10
 
+#define SPACE_BETWEEN_WINDOWS 1
+
+#define BOARD_WIDTH 20
 #define BOARD_HEIGHT_VISIBLE 20
 #define BOARD_HEIGHT_BUF 3
-#define BOARD_HEIGHT BOARD_HEIGHT_VISIBLE+BOARD_HEIGHT_BUF
+#define BOARD_HEIGHT_TOTAL BOARD_HEIGHT_VISIBLE+BOARD_HEIGHT_BUF
+
+#define SIDE_PANEL_WIDTH 15
+
+#define BLOCK_WINDOW_HEIGHT 6
+#define LEGEND_WINDOW_HEIGHT 8
+#define SCORE_WINDOW_HEIGHT 3
+
+#define MIN_WINDOW_WIDTH BOARD_WIDTH+SIDE_PANEL_WIDTH+SPACE_BETWEEN_WINDOWS
 
 #define BLOCK_MAX_SIZE 4
 
@@ -22,10 +36,18 @@ typedef struct block {
     pixelptr board[BLOCK_MAX_SIZE][BLOCK_MAX_SIZE];
 } block;
 
-typedef struct {
-    pixelptr board[BOARD_HEIGHT][BOARD_WIDTH];
+typedef struct game_data *dataptr;
+typedef struct game_data{
+    pixelptr board[BOARD_HEIGHT_TOTAL][BOARD_WIDTH];
     blockptr next_block;
     int score;
 } game_data;
 
+typedef struct game_view *viewptr;
+typedef struct game_view{
+    WINDOW * board;
+    WINDOW * next_block;
+    WINDOW * legend;
+    WINDOW * scoreboard;
+} game_view;
 #endif
