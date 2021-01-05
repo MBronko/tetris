@@ -5,36 +5,41 @@
 //#include <stdio.h>
 //#include <time.h>
 
-void draw_menu(WINDOW *wmenu, menuptr menu_data){
-    wclear(wmenu);
-//    char *choices[] = {
-//            "Resume",
-//            "New Game",
-//            "Quit",
-//    };
-//    int n_choices = sizeof(choices) / sizeof(choices[0]);
+int center_y(int box_y){
+    int y = getmaxy(stdscr);
+    int res = (y-(box_y))/2;
+    return res >= 0 ? res : 0;
+}
 
+int center_x(int box_x){
+    int x = getmaxx(stdscr);
+    int res = (x-(box_x))/2;
+    return res >= 0 ? res : 0;
+}
+
+void draw_menu(){
+    wclear(wmenu);
 
     int x = 2, y = 2;
     box(wmenu, 0, 0);
 
     wattron(wmenu, A_BOLD);
-    mvwprintw(wmenu, y, x, "%s", menu_data->rand_header);
+    mvwprintw(wmenu, y, x, "%s", rand_header);
     wattroff(wmenu, A_BOLD);
     y+=2;
 
-    for (int i = 0; i < menu_data->n_options; ++i) {
-        if (!menu_data->game_active && i == 0) {
+    for (int i = 0; i < n_options; ++i) {
+        if (!game_active && i == 0) {
             wattron(wmenu, A_DIM);
-            mvwprintw(wmenu, y, x, "%s", menu_data->options[i]);
+            mvwprintw(wmenu, y, x, "%s", options[i]);
             wattroff(wmenu, A_DIM);
 
-        } else if (menu_data->highlight == i + 1) {
+        } else if (highlight == i + 1) {
             wattron(wmenu, A_REVERSE);
-            mvwprintw(wmenu, y, x, "%s", menu_data->options[i]);
+            mvwprintw(wmenu, y, x, "%s", options[i]);
             wattroff(wmenu, A_REVERSE);
         } else
-            mvwprintw(wmenu, y, x, "%s", menu_data->options[i]);
+            mvwprintw(wmenu, y, x, "%s", options[i]);
         y++;
     }
     clear();
@@ -96,28 +101,27 @@ void game_resize(viewptr view, dataptr data){
 
 }
 
-WINDOW * menu_resize(WINDOW * reset, menuptr menu_data){
-    int x, y, new_x, new_y;
-    char msg[] = "Window is too small";
-
+int menu_resize(){
+    int x, y;
     getmaxyx(stdscr, y, x);
+    char msg[] = "Window is too small";
+    int msg_len = sizeof(msg)/sizeof(msg[0]);
+
     if(x>=MIN_WINDOW_WIDTH && y>=BOARD_HEIGHT_VISIBLE){
-        new_y = (y-MENU_HEIGHT)/2;
-        new_x = (x-MENU_WIDTH)/2;
-        if(reset != NULL){
-            mvwin(reset, new_y, new_x);
+        int new_y = center_y(MENU_HEIGHT);
+        int new_x = center_x(MENU_WIDTH);
+        if(wmenu != NULL){
+            mvwin(wmenu, new_y, new_x);
         }
         else{
-            reset = newwin(MENU_HEIGHT,MENU_WIDTH,new_y,new_x);
+            wmenu = newwin(MENU_HEIGHT,MENU_WIDTH,new_y,new_x);
         }
-        draw_menu(reset, menu_data);
-        return reset;
-    };
-    int msg_len = sizeof(msg)/sizeof(msg[0]);
-    new_x = x-msg_len >= 0 ? (x-msg_len)/2 : 0;
-    new_y = y >= 0 ? y/2 : 0;
+        draw_menu();
+        return 1;
+    }
     clear();
-    mvprintw(new_y, new_x, msg);
-    delwin(reset);
-    return NULL;
+    mvprintw(center_y(0), center_x(msg_len), msg);
+    delwin(wmenu);
+    wmenu = NULL;
+    return 0;
 }

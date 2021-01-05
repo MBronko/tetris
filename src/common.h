@@ -40,7 +40,6 @@ typedef struct menu_data *menuptr;
 typedef struct menu_data{
     char *rand_header;
     int game_active;
-    char **options;
     int n_options;
     int highlight;
 } menu_data;
