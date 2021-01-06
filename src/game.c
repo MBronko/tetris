@@ -8,10 +8,16 @@ int game() {
 //    int game_x = 10, game_y = 20;
     short colors[] = {COLOR_BLUE, COLOR_RED, COLOR_WHITE, COLOR_YELLOW, COLOR_CYAN};
     int n_colors = sizeof colors / sizeof colors[0];
-    int c, x = 20, y = 10;
+    int c, x = 20, y = 10, pause = 0;
     int counter = 0;
     clear();
-    while ((c = getch()) != 'q') {
+    game_resize();
+    while (!pause && (c = getch())) {
+        if (c == KEY_RESIZE) {
+            game_resize();
+            continue;
+        }
+        if (board == NULL) continue;
         switch (tolower(c)) {
             case ' ':
                 y -= 2;
@@ -32,8 +38,11 @@ int game() {
             case 'd':
                 x += 2;
                 break;
+            case 'q':
+                quit = 1;
             case 'p':
-                return 0;
+                pause = 1;
+                continue;
             default:
                 continue;
         }

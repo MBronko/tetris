@@ -28,9 +28,11 @@ char *options[] = {
 };
 int n_options = sizeof(options) / sizeof(options[0]);
 
-int highlight = 2, game_active = 0;
+int highlight = 2, game_active = 0, quit = 0;
 char *rand_header;
-WINDOW * wmenu;
+WINDOW *wmenu = NULL;
+
+WINDOW *wgame = NULL, *board, *next_block, *legend, *scoreboard;
 
 void reset_game_data(dataptr data) {
     data->score = 0;
@@ -55,23 +57,16 @@ char *get_rand_header() {
 
 void menu() {
     rand_header = get_rand_header();
-    int c, quit = 0;
+    int c;
 
 //    viewptr wgame = calloc(1, sizeof(game_view));
-//    wgame->board = newwin(BOARD_HEIGHT_VISIBLE, BOARD_WIDTH, 0, 0);
-//    wgame->next_block = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, 0);
-//    wgame->legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, 0);
-//    wgame->scoreboard = newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, 0);
+//    wgame = newwin(BOARD_HEIGHT_VISIBLE, MIN_WINDOW_WIDTH, 0, 0);
 
-    wmenu = newwin(MENU_HEIGHT, MENU_WIDTH, 0, 0);
     menu_resize();
 
     dataptr data = (dataptr)calloc(1, sizeof(game_data));
     data->next_block = (blockptr)calloc(1, sizeof(block));
-//    draw_game(wgame, data);
-//    getch();
 
-    draw_menu();
     while (!quit && (c = getch()) != 'q') {
         if (c == KEY_RESIZE) {
             menu_resize();
@@ -98,14 +93,17 @@ void menu() {
                         highlight = 1;
 //                        rand_header = pause_header;
                         rand_header = get_rand_header();
+                        delwin(wmenu);
+                        wmenu = NULL;
                         game(data);
-                        break;
+                        del_game_win();
+                        menu_resize();
+                        continue;
                     case 3:
                         quit = 1;
                     default:
                         continue;
                 }
-                break;
             default:
                 continue;
         }
