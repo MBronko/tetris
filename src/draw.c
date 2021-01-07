@@ -1,10 +1,9 @@
-#include "draw.h"
 #include <curses.h>
-#include "common.h"
-#include <stdlib.h>
 #include <string.h>
-//#include <stdio.h>
-//#include <time.h>
+
+#include "common.h"
+#include "menu.h"
+#include "draw.h"
 
 int center_y(int box_y){
     int y = getmaxy(stdscr);
@@ -24,61 +23,50 @@ int center_text(WINDOW *win, char* string){
     return res >= 0 ? res : 0;
 }
 
-int get_int_len(int x){
-    if(x<1) return 1;
-    int res = 0;
-    while(x > 0){
-        res++;
-        x /= 10;
-    }
-    return res;
-}
-
-void draw_menu(){
+void draw_menu(menuptr wmenu){
     int y = 2;
-    clear();
-    box(wmenu, 0, 0);
+    box(wmenu->win, 0, 0);
 
-    wattron(wmenu, A_BOLD);
-    mvwprintw(wmenu, y, center_text(wmenu, rand_header), "%s", rand_header);
-    wattroff(wmenu, A_BOLD);
+    wattron(wmenu->win, A_BOLD);
+    mvwprintw(wmenu->win, y, center_text(wmenu->win, wmenu->rand_header), "%s", wmenu->rand_header);
+    wattroff(wmenu->win, A_BOLD);
     y+=2;
 
     for (int i = 0; i < n_options; ++i) {
-        int x = center_text(wmenu, options[i]);
-//        printw("%d\n", x);
-        if (!game_active && i == 0) {
-            wattron(wmenu, A_DIM);
-            mvwprintw(wmenu, y, x, "%s", options[i]);
-            wattroff(wmenu, A_DIM);
+        int x = center_text(wmenu->win, options[i]);
+        if (!wmenu->game_active && i == 0) {
+            wattron(wmenu->win, A_DIM);
+            mvwprintw(wmenu->win, y, x, "%s", options[i]);
+            wattroff(wmenu->win, A_DIM);
 
-        } else if (highlight == i + 1) {
-            wattron(wmenu, A_REVERSE);
-            mvwprintw(wmenu, y, x, "%s", options[i]);
-            wattroff(wmenu, A_REVERSE);
+        } else if (wmenu->highlight == i + 1) {
+            wattron(wmenu->win, A_REVERSE);
+            mvwprintw(wmenu->win, y, x, "%s", options[i]);
+            wattroff(wmenu->win, A_REVERSE);
         } else
-            mvwprintw(wmenu, y, x, "%s", options[i]);
+            mvwprintw(wmenu->win, y, x, "%s", options[i]);
         y++;
     }
+    clear();
     refresh();
-    wrefresh(wmenu);
+    wrefresh(wmenu->win);
 }
 
-void draw_board(){
+void draw_board(gameptr wgame){
     char title[] = "Board";
-    box(board, 0, 0);
-    mvwprintw(board, 0, center_text(board, title), title);
-    wrefresh(board);
+    box(wgame->win_board, 0, 0);
+    mvwprintw(wgame->win_board, 0, center_text(wgame->win_board, title), title);
+    wrefresh(wgame->win_board);
 }
 
-void draw_next_block(){
+void draw_next_block(gameptr wgame){
     char title[] = "Next";
-    box(next_block, 0, 0);
-    mvwprintw(next_block, 0, center_text(next_block, title), title);
-    wrefresh(next_block);
+    box(wgame->win_next, 0, 0);
+    mvwprintw(wgame->win_next, 0, center_text(wgame->win_next, title), title);
+    wrefresh(wgame->win_next);
 }
 
-void draw_legend(){
+void draw_legend(gameptr wgame){
     int y=1;
     char title[] = "Legend";
     char *content[] = {
@@ -91,116 +79,116 @@ void draw_legend(){
             "QUIT        Q",
     };
     int n_content = sizeof(content)/sizeof(content[0]);
-    box(legend, 0, 0);
-    mvwprintw(legend, 0, center_text(legend, title), title);
+    box(wgame->win_legend, 0, 0);
+    mvwprintw(wgame->win_legend, 0, center_text(wgame->win_legend, title), title);
     for(int i=0; i<n_content; i++){
         if(i == 5) y+=2;
-        mvwprintw(legend, y, 1, content[i]);
+        mvwprintw(wgame->win_legend, y, 1, content[i]);
         y++;
     }
-    wrefresh(legend);
+    wrefresh(wgame->win_legend);
 }
 
-void draw_scoreboard(){
+void draw_scoreboard(gameptr wgame){
     char title[] = "Score";
     int score = 9999;
     char score_str[7];
-    box(scoreboard, 0, 0);
+    box(wgame->win_score, 0, 0);
     sprintf(score_str, "%d", score);
-    mvwprintw(scoreboard, 0, center_text(scoreboard, title), title);
-    mvwprintw(scoreboard, 1, getmaxx(scoreboard)-strlen(score_str)-1, score_str);
-    wrefresh(scoreboard);
+    mvwprintw(wgame->win_score, 0, center_text(wgame->win_score, title), title);
+    mvwprintw(wgame->win_score, 1, getmaxx(wgame->win_score)-strlen(score_str)-1, score_str);
+
+    wrefresh(wgame->win_score);
 }
 
 
-void draw_game(){
+void draw_game(gameptr wgame){
     clear();
     refresh();
-    draw_board();
-    draw_next_block();
-    draw_legend();
-    draw_scoreboard();
+    draw_board(wgame);
+    draw_next_block(wgame);
+    draw_legend(wgame);
+    draw_scoreboard(wgame);
 }
 
 int check_terminal_size(){
     int x, y;
     char msg[] = "Window is too small";
-    int msg_len = strlen(msg);
     getmaxyx(stdscr, y, x);
     if(x>=MIN_WINDOW_WIDTH && y>=BOARD_HEIGHT_VISIBLE){
         return 1;
     }
     clear();
-    mvprintw(center_y(0), center_x(msg_len), msg);
+    mvprintw(center_y(0), center_text(stdscr, msg), msg);
     return 0;
 }
 
-void del_game_win(){
-    delwin(board);
-    board = NULL;
-    delwin(next_block);
-    next_block = NULL;
-    delwin(legend);
-    legend = NULL;
-    delwin(scoreboard);
-    scoreboard = NULL;
-
-//    delwin(wgame);
-//    wgame = NULL;
+void del_game_win(gameptr wgame){
+    delwin(wgame->win_board);
+    wgame->win_board = NULL;
+    delwin(wgame->win_next);
+    wgame->win_next = NULL;
+    delwin(wgame->win_legend);
+    wgame->win_legend = NULL;
+    delwin(wgame->win_score);
+    wgame->win_score = NULL;
 }
 
-void game_resize(){
+void game_resize(gameptr wgame){
     if(check_terminal_size()){
         int new_y = center_y(BOARD_HEIGHT_VISIBLE);
+//        int new_y = 0;
         int new_x = center_x(MIN_WINDOW_WIDTH);
-        printw("xd %d %d\n", new_y, new_x);
+
         int panel_x = new_x + BOARD_WIDTH + SPACE_BETWEEN_WINDOWS;
         int legend_y = new_y + BLOCK_WINDOW_HEIGHT + SPACE_BETWEEN_WINDOWS;
         int scoreboard_y = legend_y + SPACE_BETWEEN_WINDOWS + LEGEND_WINDOW_HEIGHT;
 
-        if(wgame != NULL){
-//            mvwin(wgame, new_y, new_x);
-
-            mvwin(board, new_y, new_x);
-            mvwin(next_block, new_y, panel_x);
-            mvwin(legend, legend_y, panel_x);
-            mvwin(scoreboard, scoreboard_y, panel_x);
+        if(wgame->win_board != NULL){
+            if(wgame->win_x != new_x || wgame->win_y != new_y){
+                mvwin(wgame->win_board, new_y, new_x);
+                mvwin(wgame->win_next, new_y, panel_x);
+                mvwin(wgame->win_legend, legend_y, panel_x);
+                mvwin(wgame->win_score, scoreboard_y, panel_x);
+                wgame->win_x = new_x;
+                wgame->win_y = new_y;
+            }
         }
         else{
-
-            board = newwin(BOARD_HEIGHT_VISIBLE, BOARD_WIDTH, new_y, new_x);
-            next_block = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
-            legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
-            scoreboard = newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
-
-//            wgame = newwin(BOARD_HEIGHT_VISIBLE, MIN_WINDOW_WIDTH, new_y, new_x);
-//
-//            board = subwin(wgame, BOARD_HEIGHT_VISIBLE, BOARD_WIDTH, 0, 0);
-//            next_block = subwin(wgame, BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, 0, panel_x);
-//            legend = subwin(wgame, LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
-//            scoreboard = subwin(wgame, SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
+            wgame->win_board = newwin(BOARD_HEIGHT_VISIBLE, BOARD_WIDTH, new_y, new_x);
+            wgame->win_next = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
+            wgame->win_legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
+            wgame->win_score= newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
+            wgame->win_x = new_x;
+            wgame->win_y = new_y;
         }
-        draw_game();
+        draw_game(wgame);
     }
-    else{
-        del_game_win();
+    else if(wgame->win_board != NULL){
+        del_game_win(wgame);
     }
 }
 
-void menu_resize(){
-    if(check_terminal_size(wmenu)){
+void menu_resize(menuptr wmenu){
+    if(check_terminal_size()){
         int new_y = center_y(MENU_HEIGHT);
         int new_x = center_x(MENU_WIDTH);
-        if(wmenu != NULL){
-            mvwin(wmenu, new_y, new_x);
+        if(wmenu->win != NULL){
+            if(wmenu->win_x != new_x || wmenu->win_y != new_y) {
+                mvwin(wmenu->win, new_y, new_x);
+                wmenu->win_x = new_x;
+                wmenu->win_y = new_y;
+            }
         }
         else{
-            wmenu = newwin(MENU_HEIGHT,MENU_WIDTH,new_y,new_x);
+            wmenu->win = newwin(MENU_HEIGHT,MENU_WIDTH,new_y,new_x);
+            wmenu->win_x = new_x;
+            wmenu->win_y = new_y;
         }
-        draw_menu();
+        draw_menu(wmenu);
     }
-    else{
-        delwin(wmenu);
-        wmenu = NULL;
+    else if(wmenu->win != NULL){
+        delwin(wmenu->win);
+        wmenu->win = NULL;
     }
 }

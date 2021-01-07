@@ -17,7 +17,7 @@
 #define LEGEND_WINDOW_HEIGHT 11
 #define SCORE_WINDOW_HEIGHT 3
 
-#define MIN_WINDOW_WIDTH BOARD_WIDTH+SIDE_PANEL_WIDTH+SPACE_BETWEEN_WINDOWS
+#define MIN_WINDOW_WIDTH (BOARD_WIDTH+SIDE_PANEL_WIDTH+SPACE_BETWEEN_WINDOWS)
 
 #define BLOCK_MAX_SIZE 4
 
@@ -36,24 +36,27 @@ typedef struct block {
 
 typedef struct menu_data *menuptr;
 typedef struct menu_data{
+    int win_x;
+    int win_y;
+    WINDOW *win;
     char *rand_header;
     int game_active;
-    int n_options;
     int highlight;
+    int quit;
 } menu_data;
 
-typedef struct game_data *dataptr;
+typedef struct game_data *gameptr;
 typedef struct game_data{
+    int win_x;
+    int win_y;
+    WINDOW * win_board;
+    WINDOW * win_next;
+    WINDOW * win_legend;
+    WINDOW * win_score;
     pixelptr board[BOARD_HEIGHT_TOTAL][BOARD_WIDTH];
-    blockptr next_block;
+    blockptr act_block;
+    int next_block;
     int score;
 } game_data;
 
-typedef struct game_view *viewptr;
-typedef struct game_view{
-    WINDOW * board;
-    WINDOW * next_block;
-    WINDOW * legend;
-    WINDOW * scoreboard;
-} game_view;
 #endif

@@ -1,8 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
+#include "common.h"
 
-extern int quit;
+#define TICK_TIME_MS 800
 
-int game();
+int game(gameptr wgame);
 
 #endif

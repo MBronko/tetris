@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -10,7 +9,7 @@
 #include "game.h"
 #include "draw.h"
 
-char pause_header[] = "Pause";
+//char pause_header[] = "Pause";
 
 char *headers[] = {
         "Hello!!",
@@ -28,13 +27,7 @@ char *options[] = {
 };
 int n_options = sizeof(options) / sizeof(options[0]);
 
-int highlight = 2, game_active = 0, quit = 0;
-char *rand_header;
-WINDOW *wmenu = NULL;
-
-WINDOW *wgame = NULL, *board, *next_block, *legend, *scoreboard;
-
-void reset_game_data(dataptr data) {
+void reset_game_data(gameptr data) {
     data->score = 0;
     for (int x = 0; x < BOARD_HEIGHT_TOTAL; x++) {
         for (int y = 0; y < BOARD_WIDTH; y++) {
@@ -42,12 +35,12 @@ void reset_game_data(dataptr data) {
             data->board[x][y] = NULL;
         }
     }
-    for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
-        for (int y = 0; y < BLOCK_MAX_SIZE; y++) {
-            free(data->next_block->board[x][y]);
-            data->next_block->board[x][y] = NULL;
-        }
-    }
+//    for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
+//        for (int y = 0; y < BLOCK_MAX_SIZE; y++) {
+//            free(data->next_block->board[x][y]);
+//            data->next_block->board[x][y] = NULL;
+//        }
+//    }
 }
 
 char *get_rand_header() {
@@ -55,61 +48,77 @@ char *get_rand_header() {
     return headers[rand_value];
 }
 
+void menu_option(menuptr wmenu, gameptr wgame){
+    switch (wmenu->highlight) {
+        case 2:
+            reset_game_data(wgame);
+        case 1:
+            wmenu->game_active = 1;
+            wmenu->highlight = 1;
+//                        rand_header = pause_header;
+            wmenu->rand_header = get_rand_header();
+
+            delwin(wmenu->win);
+            wmenu->win = NULL;
+
+            wmenu->quit = game(wgame);
+            del_game_win(wgame);
+            break;
+        case 3:
+            wmenu->quit = 1;
+    }
+}
+
 void menu() {
-    rand_header = get_rand_header();
-    int c;
+    menuptr wmenu = (menuptr)calloc(1, sizeof(menu_data));
 
-//    viewptr wgame = calloc(1, sizeof(game_view));
-//    wgame = newwin(BOARD_HEIGHT_VISIBLE, MIN_WINDOW_WIDTH, 0, 0);
+    wmenu->win = NULL;
+    wmenu->rand_header = get_rand_header();
+    wmenu->game_active = 0;
+    wmenu->highlight = 2;
+    wmenu->quit = 0;
 
-    menu_resize();
+    gameptr wgame = (gameptr)calloc(1, sizeof(game_data));
+    wgame->win_board = NULL;
+    wgame->win_next = NULL;
+    wgame->win_legend = NULL;
+    wgame->win_score = NULL;
 
-    dataptr data = (dataptr)calloc(1, sizeof(game_data));
-    data->next_block = (blockptr)calloc(1, sizeof(block));
+    menu_resize(wmenu);
 
-    while (!quit && (c = getch()) != 'q') {
-        if (c == KEY_RESIZE) {
-            menu_resize();
+//    dataptr data = (dataptr)calloc(1, sizeof(game_data));
+//    data->next_block = (blockptr)calloc(1, sizeof(block));
+
+    int ch;
+    while (!wmenu->quit && (ch = getch()) != 'q') {
+        if (ch == KEY_RESIZE) {
+            menu_resize(wmenu);
             continue;
         }
-        if (wmenu == NULL) continue;
-        switch (tolower(c)) {
+        if (wmenu->win == NULL) continue;
+        switch (tolower(ch)) {
             case KEY_UP:
             case 'w':
-                if ((game_active && highlight != 1) ||
-                    (!game_active && highlight != 2))
-                    highlight--;
+                if (wmenu->highlight + wmenu->game_active != 2) {
+                    wmenu->highlight--;
+                }
                 break;
             case KEY_DOWN:
             case 's':
-                if (highlight != n_options) highlight++;
+                if (wmenu->highlight != n_options) wmenu->highlight++;
                 break;
             case 10:
-                switch (highlight) {
-                    case 2:
-                        reset_game_data(data);
-                    case 1:
-                        game_active = 1;
-                        highlight = 1;
-//                        rand_header = pause_header;
-                        rand_header = get_rand_header();
-                        delwin(wmenu);
-                        wmenu = NULL;
-                        game(data);
-                        del_game_win();
-                        menu_resize();
-                        continue;
-                    case 3:
-                        quit = 1;
-                    default:
-                        continue;
-                }
+            case KEY_ENTER:
+                menu_option(wmenu, wgame);
+                menu_resize(wmenu);
             default:
                 continue;
         }
-        draw_menu();
+        draw_menu(wmenu);
     }
-    reset_game_data(data);
-    free(data->next_block);
-    free(data);
+
+    reset_game_data(wgame);
+    free(wgame);
+//    free(data->next_block);
+    free(wmenu);
 }
