@@ -89,19 +89,30 @@ void draw_board(gameptr game_data){
 }
 
 void draw_next_block(gameptr game_data){
+    wclear(game_data->win_next);
     char title[] = "Next";
     box(game_data->win_next, 0, 0);
     mvwprintw(game_data->win_next, 0, center_text(game_data->win_next, title), title);
 
     block next_block = blocks[game_data->next_block];
     int n = next_block.n;
-//    offset for i block (cosmetic purpose)
-    int i_off = n == 4 ? 1 : 0;
+
+//    offset for cosmetic purpose
+    int y_off = n == 4 ? 1 : 0;
+
+    if(n==3){
+        int check = 1;
+        for (int x = 0; x < n; x++) {
+            if(next_block.board[x]) check = 0;
+        }
+        if(check) y_off++;
+    }
+
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
-            if(next_block.board[n*y+x] == 1){
+            if(next_block.board[n*y+x]){
                 wattron(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
-                mvwprintw(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y+i_off, 2*x+7-n, "  ");
+                mvwprintw(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y+y_off, 2*x+7-n, "  ");
                 wattroff(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
             }
         }
@@ -229,4 +240,8 @@ void menu_resize(menuptr wmenu){
         delwin(wmenu->win);
         wmenu->win = NULL;
     }
+}
+
+void game_over_view(){
+//    jakiś basic widok z napisem game over
 }
