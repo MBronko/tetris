@@ -13,11 +13,11 @@ short colors[] = {COLOR_BLUE, COLOR_RED, COLOR_WHITE, COLOR_YELLOW, COLOR_CYAN, 
 int block_count = 7;
 block blocks[7] = {
         {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, 4, 0},  // i
-        {{1, 1, 1, 1, 0, 0, 0, 0, 0}, 3, 1},  // j
-        {{1, 1, 1, 0, 0, 1, 0, 0, 0}, 3, 2},  // l
+        {{0, 0, 0, 1, 1, 1, 1, 0, 0}, 3, 1},  // j
+        {{0, 0, 0, 1, 1, 1, 0, 0, 1}, 3, 2},  // l
         {{1, 1, 1, 1}, 2, 3},  // o
         {{1, 1, 0, 0, 1, 1, 0, 0, 0}, 3, 4},  // s
-        {{1, 1, 1, 0, 1, 0, 0, 0, 0}, 3, 5},  // t
+        {{0, 0, 0, 1, 1, 1, 0, 1, 0}, 3, 5},  // t
         {{0, 1, 1, 1, 1, 0, 0, 0, 0}, 3, 6}   // z
 };
 
@@ -25,12 +25,17 @@ int get_rand_block_num(){
     return rand() % block_count;
 }
 
-block get_rand_block(){
-    block new = blocks[get_rand_block_num()];
+block get_block(int n){
+    block new = blocks[n];
     new.rotation = 0;
-    new.x = 2;
-    new.y = 2;
+    new.x = (BOARD_GAME_WIDTH-new.n)/2;
+    new.y = BOARD_GAME_HEIGHT - 5;
+    if (new.n == 4) new.y--;
     return new;
+}
+
+block get_rand_block(){
+    return get_block(get_rand_block_num());
 }
 
 //   https://youtu.be/8OK8_tHeCIA?t=362  formulas explanation
@@ -47,7 +52,7 @@ int process_rotation(int x, int y, int n, int rotation){
                 return 6+y-x*n;
         }
     }
-    else{
+    else if(n == 4){
         switch (rotation) {
             case 0:
                 return y*n+x;
@@ -59,6 +64,9 @@ int process_rotation(int x, int y, int n, int rotation){
                 return 12+y-x*n;
         }
     }
+    else{
+        return y*n+x;
+    }
     return 0; // shouldnt happen
 }
 
@@ -69,9 +77,11 @@ int is_legal_pos(gameptr game_data) {
     int rotation = game_data->act_block.rotation;
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
-            if(off_y+y < 0 || off_x+x < 0) continue;
-            if(game_data->board[off_y+y][off_x+x] != -1 && game_data->act_block.board[process_rotation(x, y, n, rotation)]){
-                return 0;
+            if(off_x+x < 0) continue;
+            if(game_data->act_block.board[process_rotation(x, y, n, rotation)]){
+                if(game_data->board[off_y+y][off_x+x] != -1 || off_y+y < 0){
+                    return 0;
+                }
             }
         }
     }
@@ -90,6 +100,41 @@ void shift_board(gameptr game_data, int line) {
 }
 
 int gravity(gameptr game_data) {
+    int n = game_data->act_block.n;
+    int off_x = game_data->act_block.x;
+    int off_y = game_data->act_block.y;
+    int rotation = game_data->act_block.rotation;
+    game_data->act_block.y--;
+    if(!is_legal_pos(game_data)){
+        game_data->act_block.y++;
+
+        for (int y = 0; y < n; y++) {
+            for (int x = 0; x < n; x++) {
+                if(game_data->act_block.board[process_rotation(x,y,n,rotation)]){
+                    game_data->board[off_y+y][off_x+x] = game_data->act_block.color;
+                }
+            }
+        }
+        game_data->act_block = get_block(game_data->next_block);
+        game_data->next_block = get_rand_block_num();
+
+        int score = 0, counter = 1;
+        for (int y = off_y; y <= off_y+n; y++) {
+            if(y<0) continue;
+            int check = 1;
+            for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
+                if(game_data->board[y][x] == -1) check = 0;
+            }
+            if(check){
+                shift_board(game_data, y);
+                score += counter;
+                counter++;
+                y--;
+            }
+        }
+        game_data->score += score*100;
+    }
+
 //    sprawdź czy jest to możliwy ruch
 //    jeżeli nie to zaktualizuj tablice o klocka,
 //    sprawdź zapełnione linie, dodaj score i odśwież,
@@ -102,7 +147,16 @@ int gravity(gameptr game_data) {
 }
 
 void move_block(gameptr game_data, int dir){
-    if(game_data->act_block.x + dir < 0 || game_data->act_block.x + dir >= BOARD_GAME_WIDTH) return;
+//    if(game_data->act_block.x + dir < 0 || game_data->act_block.x + dir >= BOARD_GAME_WIDTH) return;
+    int n = game_data->act_block.n;
+    int x1 = game_data->act_block.x;
+    int rotation = game_data->act_block.rotation;
+    for (int y = 0; y < n; y++) {
+        for (int x = 0; x < n; x+=n-1) {
+            if((x1 + x + dir < 0 || x1 + x + dir >= BOARD_GAME_WIDTH) &&game_data->act_block.board[process_rotation(x,y,n,rotation)]) return;
+        }
+    }
+
 
     game_data->act_block.x += dir;
     if(!is_legal_pos(game_data)) game_data->act_block.x -= dir;
@@ -183,18 +237,23 @@ int game(gameptr game_data) {
         if (game_data->win_board == NULL) continue;
         switch (tolower(c)) {
             case ' ':
+                gravity(game_data);
                 break;
             case KEY_UP:
             case 'w':
+                rotate(game_data, 1);
                 break;
             case KEY_LEFT:
             case 'a':
+                move_block(game_data, -1);
                 break;
             case KEY_DOWN:
             case 's':
+                rotate(game_data, -1);
                 break;
             case KEY_RIGHT:
             case 'd':
+                move_block(game_data, 1);
                 break;
             case 'q':
                 quit = 2;

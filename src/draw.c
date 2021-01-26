@@ -76,7 +76,8 @@ void draw_board(gameptr game_data){
     int rotation = game_data->act_block.rotation;
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
-            if(game_data->act_block.board[process_rotation(x, y, n, rotation)]){
+            if(y+game_data->act_block.y < BOARD_GAME_HEIGHT &&
+                game_data->act_block.board[process_rotation(x, y, n, rotation)]){
                 wattron(game_data->win_board, COLOR_PAIR(colors[game_data->act_block.color]));
                 mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-(y+game_data->act_block.y), 2*(x+game_data->act_block.x)+1, "  ");
                 wattroff(game_data->win_board, COLOR_PAIR(colors[game_data->act_block.color]));
@@ -94,11 +95,13 @@ void draw_next_block(gameptr game_data){
 
     block next_block = blocks[game_data->next_block];
     int n = next_block.n;
+//    offset for i block (cosmetic purpose)
+    int i_off = n == 4 ? 1 : 0;
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
             if(next_block.board[n*y+x] == 1){
                 wattron(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
-                mvwprintw(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y-3+next_block.n, 2*x+1+3+3-next_block.n, "  ");
+                mvwprintw(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y+i_off, 2*x+7-n, "  ");
                 wattroff(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
             }
         }
@@ -183,20 +186,20 @@ void game_resize(gameptr game_data){
         int legend_y = new_y + BLOCK_WINDOW_HEIGHT + SPACE_BETWEEN_WINDOWS;
         int scoreboard_y = legend_y + SPACE_BETWEEN_WINDOWS + LEGEND_WINDOW_HEIGHT;
 
-//        if(game_data->win_board != NULL && getmaxy(stdscr)>MIN_WINDOW_HEIGHT+1){
-//            if(game_data->win_x != new_x || game_data->win_y != new_y){
-//                mvwin(game_data->win_board, new_y, new_x);
-//                mvwin(game_data->win_next, new_y, panel_x);
-//                mvwin(game_data->win_legend, legend_y, panel_x);
-//                mvwin(game_data->win_score, scoreboard_y, panel_x);
-//            }
-//        }
-//        else{
+        if(game_data->win_board != NULL && getmaxy(stdscr)>MIN_WINDOW_HEIGHT+1){
+            if(game_data->win_x != new_x || game_data->win_y != new_y){
+                mvwin(game_data->win_board, new_y, new_x);
+                mvwin(game_data->win_next, new_y, panel_x);
+                mvwin(game_data->win_legend, legend_y, panel_x);
+                mvwin(game_data->win_score, scoreboard_y, panel_x);
+            }
+        }
+        else{
             game_data->win_board = newwin(MIN_WINDOW_HEIGHT, BOARD_WIN_WIDTH, new_y, new_x);
             game_data->win_next = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
             game_data->win_legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
             game_data->win_score= newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
-//        }
+        }
         game_data->win_x = new_x;
         game_data->win_y = new_y;
         draw_game(game_data);
