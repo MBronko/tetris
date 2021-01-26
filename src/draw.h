@@ -3,6 +3,10 @@
 #include <ncurses.h>
 #include "common.h"
 
+extern short colors[];
+extern int block_count;
+extern block blocks[];
+
 void draw_menu(menuptr wmenu);
 
 void draw_game(gameptr wgame);

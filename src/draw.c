@@ -56,6 +56,21 @@ void draw_board(gameptr wgame){
     char title[] = "Board";
     box(wgame->win_board, 0, 0);
     mvwprintw(wgame->win_board, 0, center_text(wgame->win_board, title), title);
+    for (int y = 0; y < BOARD_GAME_HEIGHT; y++) {
+        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
+            if(wgame->board[y][x] != -1){
+                wattron(wgame->win_board, COLOR_PAIR(colors[wgame->board[y][x]]));
+                mvwprintw(wgame->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, "  ");
+                wattroff(wgame->win_board, COLOR_PAIR(colors[wgame->board[y][x]]));
+            }
+            else{
+                mvwprintw(wgame->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, " .");
+            }
+        }
+    }
+
+//    draw actual block
+
     wrefresh(wgame->win_board);
 }
 
@@ -63,6 +78,18 @@ void draw_next_block(gameptr wgame){
     char title[] = "Next";
     box(wgame->win_next, 0, 0);
     mvwprintw(wgame->win_next, 0, center_text(wgame->win_next, title), title);
+
+    block next_block = blocks[wgame->next_block];
+    for (int y = 0; y < BLOCK_MAX_SIZE; y++) {
+        for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
+            if(next_block.board[y][x] == 1){
+                wattron(wgame->win_next, COLOR_PAIR(colors[wgame->next_block]));
+                mvwprintw(wgame->win_next, (BLOCK_WINDOW_HEIGHT)/2-y-3+next_block.n, 2*x+1+3+3-next_block.n, "  ");
+                wattroff(wgame->win_next, COLOR_PAIR(colors[wgame->next_block]));
+            }
+        }
+    }
+
     wrefresh(wgame->win_next);
 }
 
@@ -91,10 +118,9 @@ void draw_legend(gameptr wgame){
 
 void draw_scoreboard(gameptr wgame){
     char title[] = "Score";
-    int score = 9999;
     char score_str[7];
     box(wgame->win_score, 0, 0);
-    sprintf(score_str, "%d", score);
+    sprintf(score_str, "%d", wgame->score);
     mvwprintw(wgame->win_score, 0, center_text(wgame->win_score, title), title);
     mvwprintw(wgame->win_score, 1, getmaxx(wgame->win_score)-strlen(score_str)-1, score_str);
 
@@ -139,7 +165,7 @@ void game_resize(gameptr wgame){
         int new_y = center_y(MIN_WINDOW_HEIGHT);
         int new_x = center_x(MIN_WINDOW_WIDTH);
 
-        int panel_x = new_x + BOARD_WIDTH + SPACE_BETWEEN_WINDOWS;
+        int panel_x = new_x + BOARD_WIN_WIDTH + SPACE_BETWEEN_WINDOWS;
         int legend_y = new_y + BLOCK_WINDOW_HEIGHT + SPACE_BETWEEN_WINDOWS;
         int scoreboard_y = legend_y + SPACE_BETWEEN_WINDOWS + LEGEND_WINDOW_HEIGHT;
 
@@ -152,7 +178,7 @@ void game_resize(gameptr wgame){
 //            }
 //        }
 //        else{
-            wgame->win_board = newwin(BOARD_HEIGHT_VISIBLE+BOX_BORDER, BOARD_WIDTH, new_y, new_x);
+            wgame->win_board = newwin(MIN_WINDOW_HEIGHT, BOARD_WIN_WIDTH, new_y, new_x);
             wgame->win_next = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
             wgame->win_legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
             wgame->win_score= newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);

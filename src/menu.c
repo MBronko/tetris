@@ -29,11 +29,13 @@ char *options[] = {
 int n_options = sizeof(options) / sizeof(options[0]);
 
 void reset_game_data(gameptr data) {
+    data->next_block = -1;
     data->score = 0;
-    for (int x = 0; x < BOARD_HEIGHT_TOTAL; x++) {
-        for (int y = 0; y < BOARD_WIDTH; y++) {
-            free(data->board[x][y]);
-            data->board[x][y] = NULL;
+    for (int y = 0; y < BOARD_HEIGHT_TOTAL; y++) {
+        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
+//            free(data->board[x][y]);
+//            data->board[x][y] = NULL;
+            data->board[y][x] = 4;
         }
     }
 //    for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
