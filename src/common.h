@@ -4,38 +4,44 @@
 #define MENU_WIDTH 20
 #define MENU_HEIGHT 10
 
+#define BOX_BORDER 2
 #define SPACE_BETWEEN_WINDOWS 1
 
-#define BOARD_WIDTH 22
-#define BOARD_HEIGHT_VISIBLE 22
+#define BOARD_WIDTH (20+BOX_BORDER)
+#define BOARD_HEIGHT_VISIBLE 20
 #define BOARD_HEIGHT_BUF 3
 #define BOARD_HEIGHT_TOTAL BOARD_HEIGHT_VISIBLE+BOARD_HEIGHT_BUF
 
-#define SIDE_PANEL_WIDTH 15
+#define SIDE_PANEL_WIDTH (13+BOX_BORDER)
 
-#define BLOCK_WINDOW_HEIGHT 6
-#define LEGEND_WINDOW_HEIGHT 11
-#define SCORE_WINDOW_HEIGHT 3
+#define BLOCK_WINDOW_HEIGHT (4+BOX_BORDER)
+#define LEGEND_WINDOW_HEIGHT (9+BOX_BORDER)
+#define SCORE_WINDOW_HEIGHT (1+BOX_BORDER)
 
 #define MIN_WINDOW_WIDTH (BOARD_WIDTH+SIDE_PANEL_WIDTH+SPACE_BETWEEN_WINDOWS)
+#define MIN_WINDOW_HEIGHT (BOARD_HEIGHT_VISIBLE+BOX_BORDER)
 
 #define BLOCK_MAX_SIZE 4
 
-typedef struct pixel *pixelptr;
-typedef struct pixel {
+//typedef struct pixel *pixelptr;
+//typedef struct pixel {
+//    int x;
+//    int y;
+//    int type;
+//    int color;
+//} pixel;
+
+typedef struct block_str *blockptr;
+typedef struct block_str {
+    int board[BLOCK_MAX_SIZE][BLOCK_MAX_SIZE];
+    int n;
     int x;
     int y;
-    int type;
-    int color;
-} pixel;
-
-typedef struct block *blockptr;
-typedef struct block {
-    pixelptr board[BLOCK_MAX_SIZE][BLOCK_MAX_SIZE];
+    int rotation;
 } block;
 
-typedef struct menu_data *menuptr;
-typedef struct menu_data{
+typedef struct menu_str *menuptr;
+typedef struct menu_str{
     int win_x;
     int win_y;
     WINDOW *win;
@@ -45,16 +51,16 @@ typedef struct menu_data{
     int quit;
 } menu_data;
 
-typedef struct game_data *gameptr;
-typedef struct game_data{
+typedef struct game_str *gameptr;
+typedef struct game_str{
     int win_x;
     int win_y;
     WINDOW * win_board;
     WINDOW * win_next;
     WINDOW * win_legend;
     WINDOW * win_score;
-    pixelptr board[BOARD_HEIGHT_TOTAL][BOARD_WIDTH];
-    blockptr act_block;
+    int board[BOARD_HEIGHT_TOTAL][BOARD_WIDTH];
+    block act_block;
     int next_block;
     int score;
 } game_data;

@@ -115,7 +115,7 @@ int check_terminal_size(){
     int x, y;
     char msg[] = "Window is too small";
     getmaxyx(stdscr, y, x);
-    if(x>=MIN_WINDOW_WIDTH && y>=BOARD_HEIGHT_VISIBLE){
+    if(x>=MIN_WINDOW_WIDTH && y>=MIN_WINDOW_HEIGHT){
         return 1;
     }
     clear();
@@ -136,32 +136,29 @@ void del_game_win(gameptr wgame){
 
 void game_resize(gameptr wgame){
     if(check_terminal_size()){
-        int new_y = center_y(BOARD_HEIGHT_VISIBLE);
-//        int new_y = 0;
+        int new_y = center_y(MIN_WINDOW_HEIGHT);
         int new_x = center_x(MIN_WINDOW_WIDTH);
 
         int panel_x = new_x + BOARD_WIDTH + SPACE_BETWEEN_WINDOWS;
         int legend_y = new_y + BLOCK_WINDOW_HEIGHT + SPACE_BETWEEN_WINDOWS;
         int scoreboard_y = legend_y + SPACE_BETWEEN_WINDOWS + LEGEND_WINDOW_HEIGHT;
 
-        if(wgame->win_board != NULL){
-            if(wgame->win_x != new_x || wgame->win_y != new_y){
-                mvwin(wgame->win_board, new_y, new_x);
-                mvwin(wgame->win_next, new_y, panel_x);
-                mvwin(wgame->win_legend, legend_y, panel_x);
-                mvwin(wgame->win_score, scoreboard_y, panel_x);
-                wgame->win_x = new_x;
-                wgame->win_y = new_y;
-            }
-        }
-        else{
-            wgame->win_board = newwin(BOARD_HEIGHT_VISIBLE, BOARD_WIDTH, new_y, new_x);
+//        if(wgame->win_board != NULL && getmaxy(stdscr)>MIN_WINDOW_HEIGHT+1){
+//            if(wgame->win_x != new_x || wgame->win_y != new_y){
+//                mvwin(wgame->win_board, new_y, new_x);
+//                mvwin(wgame->win_next, new_y, panel_x);
+//                mvwin(wgame->win_legend, legend_y, panel_x);
+//                mvwin(wgame->win_score, scoreboard_y, panel_x);
+//            }
+//        }
+//        else{
+            wgame->win_board = newwin(BOARD_HEIGHT_VISIBLE+BOX_BORDER, BOARD_WIDTH, new_y, new_x);
             wgame->win_next = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
             wgame->win_legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
             wgame->win_score= newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
-            wgame->win_x = new_x;
-            wgame->win_y = new_y;
-        }
+//        }
+        wgame->win_x = new_x;
+        wgame->win_y = new_y;
         draw_game(wgame);
     }
     else if(wgame->win_board != NULL){
@@ -176,15 +173,13 @@ void menu_resize(menuptr wmenu){
         if(wmenu->win != NULL){
             if(wmenu->win_x != new_x || wmenu->win_y != new_y) {
                 mvwin(wmenu->win, new_y, new_x);
-                wmenu->win_x = new_x;
-                wmenu->win_y = new_y;
             }
         }
         else{
             wmenu->win = newwin(MENU_HEIGHT,MENU_WIDTH,new_y,new_x);
-            wmenu->win_x = new_x;
-            wmenu->win_y = new_y;
         }
+        wmenu->win_x = new_x;
+        wmenu->win_y = new_y;
         draw_menu(wmenu);
     }
     else if(wmenu->win != NULL){

@@ -16,7 +16,8 @@ char *headers[] = {
         "To moje bagno!",
         "Siemanko",
         "No hejka",
-        "Gitara siema"
+        "Gitara siema",
+        "MitFar tu był"
 };
 int n_headers = sizeof(headers) / sizeof(headers[0]);
 
@@ -71,7 +72,6 @@ void menu_option(menuptr wmenu, gameptr wgame){
 
 void menu() {
     menuptr wmenu = (menuptr)calloc(1, sizeof(menu_data));
-
     wmenu->win = NULL;
     wmenu->rand_header = get_rand_header();
     wmenu->game_active = 0;
