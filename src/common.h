@@ -35,8 +35,9 @@
 
 typedef struct block_str *blockptr;
 typedef struct block_str {
-    int board[BLOCK_MAX_SIZE][BLOCK_MAX_SIZE];
+    int board[(BLOCK_MAX_SIZE)*(BLOCK_MAX_SIZE)];
     int n;
+    int color;
     int x;
     int y;
     int rotation;

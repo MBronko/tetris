@@ -7,30 +7,70 @@
 #include "game.h"
 #include "draw.h"
 
+int jumped = 0, quit = 0;
 //    dane z klockami
 short colors[] = {COLOR_BLUE, COLOR_RED, COLOR_WHITE, COLOR_YELLOW, COLOR_CYAN, COLOR_MAGENTA, COLOR_GREEN};
 int block_count = 7;
 block blocks[7] = {
-        {{{0, 0, 0, 0}, {1, 1, 1, 1}, {0, 0, 0, 0}, {0, 0, 0, 0}}, 4, 0, 0, 0},  // i
-        {{{1, 1, 1, 0}, {1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, 3, 0, 0, 0},  // j
-        {{{1, 1, 1, 0}, {0, 0, 1, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, 3, 0, 0, 0},  // l
-        {{{0, 0, 0, 0}, {0, 1, 1, 0}, {0, 1, 1, 0}, {0, 0, 0, 0}}, 4, 0, 0, 0},  // o
-        {{{1, 1, 0, 0}, {0, 1, 1, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, 3, 0, 0, 0},  // s
-        {{{1, 1, 1, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, 3, 0, 0, 0},  // t
-        {{{0, 1, 1, 0}, {1, 1, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, 3, 0, 0, 0}   // z
+        {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, 4, 0},  // i
+        {{1, 1, 1, 1, 0, 0, 0, 0, 0}, 3, 1},  // j
+        {{1, 1, 1, 0, 0, 1, 0, 0, 0}, 3, 2},  // l
+        {{1, 1, 1, 1}, 2, 3},  // o
+        {{1, 1, 0, 0, 1, 1, 0, 0, 0}, 3, 4},  // s
+        {{1, 1, 1, 0, 1, 0, 0, 0, 0}, 3, 5},  // t
+        {{0, 1, 1, 1, 1, 0, 0, 0, 0}, 3, 6}   // z
 };
 
-int get_rand_block(){
+int get_rand_block_num(){
     return rand() % block_count;
 }
 
+block get_rand_block(){
+    block new = blocks[get_rand_block_num()];
+    new.rotation = 0;
+    new.x = 2;
+    new.y = 2;
+    return new;
+}
+
+//   https://youtu.be/8OK8_tHeCIA?t=362  formulas explanation
+int process_rotation(int x, int y, int n, int rotation){
+    if(n == 3){
+        switch (rotation) {
+            case 0:
+                return y*n+x;
+            case 1:
+                return 2-y+x*n;
+            case 2:
+                return 8-y*n-x;
+            case 3:
+                return 6+y-x*n;
+        }
+    }
+    else{
+        switch (rotation) {
+            case 0:
+                return y*n+x;
+            case 1:
+                return 3-y+x*n;
+            case 2:
+                return 15-y*n-x;
+            case 3:
+                return 12+y-x*n;
+        }
+    }
+    return 0; // shouldnt happen
+}
+
 int is_legal_pos(gameptr game_data) {
-//    check for rotations
     int off_x = game_data->act_block.x;
     int off_y = game_data->act_block.y;
-    for (int y = 0; y < BLOCK_MAX_SIZE; y++) {
-        for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
-            if(game_data->board[off_y+y][off_x+x] != -1 && game_data->act_block.board[y][x]){
+    int n = game_data->act_block.n;
+    int rotation = game_data->act_block.rotation;
+    for (int y = 0; y < n; y++) {
+        for (int x = 0; x < n; x++) {
+            if(off_y+y < 0 || off_x+x < 0) continue;
+            if(game_data->board[off_y+y][off_x+x] != -1 && game_data->act_block.board[process_rotation(x, y, n, rotation)]){
                 return 0;
             }
         }
@@ -65,19 +105,19 @@ void move_block(gameptr game_data, int dir){
     if(game_data->act_block.x + dir < 0 || game_data->act_block.x + dir >= BOARD_GAME_WIDTH) return;
 
     game_data->act_block.x += dir;
-    if(!is_legal_pos(game_data)) game_data->act_block.x += dir;
-
-    draw_game(game_data);
+    if(!is_legal_pos(game_data)) game_data->act_block.x -= dir;
 }
 
 void rotate(gameptr game_data, int dir) {
-//    sprawdź czy jest to legalne i obróć
-//    dir value
-//    -1 - left
-//    1 - right
+    game_data->act_block.rotation += dir;
+    game_data->act_block.rotation = game_data->act_block.rotation % 4;
+
+    if(!is_legal_pos(game_data)){
+        game_data->act_block.rotation -= dir;
+        game_data->act_block.rotation = game_data->act_block.rotation % 4;
+    }
 }
 
-int jumped, quit;
 void *gravity_loop(void *value){
     gameptr game_data = (gameptr)value;
     int count = 0;
@@ -102,26 +142,27 @@ void *gravity_loop(void *value){
     return NULL;
 }
 
-int game(gameptr wgame) {
+int game(gameptr game_data) {
     clear();
     refresh();
-//    for (int k = 0; k<7; k++){
-//        for (int i = 0; i < blocks[k].n; i++) {
-//            for (int j = 0; j < blocks[k].n; j++) {
-//                if (blocks[k].board[i][j]) mvprintw(blocks[k].n - i - 1, j+5*k, "*");
-//            }
-//        }
-//    }
-    if(wgame->next_block == -1){
-        wgame->act_block = blocks[get_rand_block()];
-        wgame->next_block = get_rand_block();
-    }
-
-    for (int i = 0; i < wgame->act_block.n; i++) {
-        for (int j = 0; j < wgame->act_block.n; j++) {
-            if (wgame->act_block.board[i][j]) mvprintw(wgame->act_block.n - i - 1, j, "*");
+    for (int k = 0; k<7; k++){
+        for (int i = 0; i < blocks[k].n; i++) {
+            for (int j = 0; j < blocks[k].n; j++) {
+                if (blocks[k].board[blocks[k].n*i+j]) mvprintw(blocks[k].n - i - 1, j+5*k, "*");
+            }
         }
     }
+    if(game_data->next_block == -1){
+        game_data->act_block = get_rand_block();
+        game_data->next_block = get_rand_block_num();
+    }
+
+//    int n = game_data->act_block.n;
+//    for (int y = 0; y < wgame->act_block.n; y++) {
+//        for (int x = 0; x < wgame->act_block.n; x++) {
+//            if (wgame->act_block.board[n*y+x]) mvprintw(wgame->act_block.n - y - 1, x, "*");
+//        }
+//    }
 
 //    getch();
     jumped = quit = 0;
@@ -130,16 +171,16 @@ int game(gameptr wgame) {
 //    int c, x = 20, y = 10, pause = 0;
     int counter = 0;
 //    timeout(TICK_TIME_MS);
-    int pause = 0, c;
+    int c;
 
     clear();
-    game_resize(wgame);
-    while (!pause && (c = getch()) != ERR) {
+    game_resize(game_data);
+    while (!quit && (c = getch()) != ERR) {
         if (c == KEY_RESIZE) {
-            game_resize(wgame);
+            game_resize(game_data);
             continue;
         }
-        if (wgame->win_board == NULL) continue;
+        if (game_data->win_board == NULL) continue;
         switch (tolower(c)) {
             case ' ':
                 break;
@@ -156,14 +197,15 @@ int game(gameptr wgame) {
             case 'd':
                 break;
             case 'q':
-                pause = 2;
+                quit = 2;
                 continue;
             case 'p':
-                pause = 1;
+                quit = 1;
                 continue;
             default:
                 continue;
         }
+        draw_game(game_data);
 //            attron(COLOR_PAIR(colors[counter % n_colors]));
 //            mvprintw(y, x, "\xe2\x96\x88");
 //            mvprintw(y, x + 1, "\xe2\x96\x88");
@@ -171,5 +213,5 @@ int game(gameptr wgame) {
         refresh();
         counter++;
     }
-    return pause - 1;
+    return quit - 1;
 }

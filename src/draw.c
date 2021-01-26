@@ -52,48 +52,62 @@ void draw_menu(menuptr wmenu){
     wrefresh(wmenu->win);
 }
 
-void draw_board(gameptr wgame){
+void draw_board(gameptr game_data){
     char title[] = "Board";
-    box(wgame->win_board, 0, 0);
-    mvwprintw(wgame->win_board, 0, center_text(wgame->win_board, title), title);
+    box(game_data->win_board, 0, 0);
+    mvwprintw(game_data->win_board, 0, center_text(game_data->win_board, title), title);
     for (int y = 0; y < BOARD_GAME_HEIGHT; y++) {
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
-            if(wgame->board[y][x] != -1){
-                wattron(wgame->win_board, COLOR_PAIR(colors[wgame->board[y][x]]));
-                mvwprintw(wgame->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, "  ");
-                wattroff(wgame->win_board, COLOR_PAIR(colors[wgame->board[y][x]]));
+            if(game_data->board[y][x] != -1){
+                wattron(game_data->win_board, COLOR_PAIR(colors[game_data->board[y][x]]));
+                mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, "  ");
+                wattroff(game_data->win_board, COLOR_PAIR(colors[game_data->board[y][x]]));
             }
             else{
-                mvwprintw(wgame->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, " .");
+                mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, " .");
             }
         }
     }
 
 //    draw actual block
-
-    wrefresh(wgame->win_board);
-}
-
-void draw_next_block(gameptr wgame){
-    char title[] = "Next";
-    box(wgame->win_next, 0, 0);
-    mvwprintw(wgame->win_next, 0, center_text(wgame->win_next, title), title);
-
-    block next_block = blocks[wgame->next_block];
-    for (int y = 0; y < BLOCK_MAX_SIZE; y++) {
-        for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
-            if(next_block.board[y][x] == 1){
-                wattron(wgame->win_next, COLOR_PAIR(colors[wgame->next_block]));
-                mvwprintw(wgame->win_next, (BLOCK_WINDOW_HEIGHT)/2-y-3+next_block.n, 2*x+1+3+3-next_block.n, "  ");
-                wattroff(wgame->win_next, COLOR_PAIR(colors[wgame->next_block]));
+//    int x = game_data->act_block.x;
+//    int y = game_data->act_block.y;
+    int n = game_data->act_block.n;
+    int rotation = game_data->act_block.rotation;
+    for (int y = 0; y < n; y++) {
+        for (int x = 0; x < n; x++) {
+            if(game_data->act_block.board[process_rotation(x, y, n, rotation)]){
+                wattron(game_data->win_board, COLOR_PAIR(colors[game_data->act_block.color]));
+                mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-(y+game_data->act_block.y), 2*(x+game_data->act_block.x)+1, "  ");
+                wattroff(game_data->win_board, COLOR_PAIR(colors[game_data->act_block.color]));
             }
         }
     }
 
-    wrefresh(wgame->win_next);
+    wrefresh(game_data->win_board);
 }
 
-void draw_legend(gameptr wgame){
+void draw_next_block(gameptr game_data){
+    char title[] = "Next";
+    box(game_data->win_next, 0, 0);
+    mvwprintw(game_data->win_next, 0, center_text(game_data->win_next, title), title);
+
+    block next_block = blocks[game_data->next_block];
+    int n = next_block.n;
+    for (int y = 0; y < n; y++) {
+        for (int x = 0; x < n; x++) {
+            if(next_block.board[n*y+x] == 1){
+                wattron(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
+                mvwprintw(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y-3+next_block.n, 2*x+1+3+3-next_block.n, "  ");
+                wattroff(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
+            }
+        }
+    }
+
+    wrefresh(game_data->win_next);
+}
+
+void draw_legend(gameptr game_data){
     int y=1;
     char title[] = "Legend";
     char *content[] = {
@@ -106,35 +120,35 @@ void draw_legend(gameptr wgame){
             "QUIT        Q",
     };
     int n_content = sizeof(content)/sizeof(content[0]);
-    box(wgame->win_legend, 0, 0);
-    mvwprintw(wgame->win_legend, 0, center_text(wgame->win_legend, title), title);
+    box(game_data->win_legend, 0, 0);
+    mvwprintw(game_data->win_legend, 0, center_text(game_data->win_legend, title), title);
     for(int i=0; i<n_content; i++){
         if(i == 5) y+=2;
-        mvwprintw(wgame->win_legend, y, 1, content[i]);
+        mvwprintw(game_data->win_legend, y, 1, content[i]);
         y++;
     }
-    wrefresh(wgame->win_legend);
+    wrefresh(game_data->win_legend);
 }
 
-void draw_scoreboard(gameptr wgame){
+void draw_scoreboard(gameptr game_data){
     char title[] = "Score";
     char score_str[7];
-    box(wgame->win_score, 0, 0);
-    sprintf(score_str, "%d", wgame->score);
-    mvwprintw(wgame->win_score, 0, center_text(wgame->win_score, title), title);
-    mvwprintw(wgame->win_score, 1, getmaxx(wgame->win_score)-strlen(score_str)-1, score_str);
+    box(game_data->win_score, 0, 0);
+    sprintf(score_str, "%d", game_data->score);
+    mvwprintw(game_data->win_score, 0, center_text(game_data->win_score, title), title);
+    mvwprintw(game_data->win_score, 1, getmaxx(game_data->win_score)-strlen(score_str)-1, score_str);
 
-    wrefresh(wgame->win_score);
+    wrefresh(game_data->win_score);
 }
 
 
-void draw_game(gameptr wgame){
+void draw_game(gameptr game_data){
     clear();
     refresh();
-    draw_board(wgame);
-    draw_next_block(wgame);
-    draw_legend(wgame);
-    draw_scoreboard(wgame);
+    draw_board(game_data);
+    draw_next_block(game_data);
+    draw_legend(game_data);
+    draw_scoreboard(game_data);
 }
 
 int check_terminal_size(){
@@ -149,18 +163,18 @@ int check_terminal_size(){
     return 0;
 }
 
-void del_game_win(gameptr wgame){
-    delwin(wgame->win_board);
-    wgame->win_board = NULL;
-    delwin(wgame->win_next);
-    wgame->win_next = NULL;
-    delwin(wgame->win_legend);
-    wgame->win_legend = NULL;
-    delwin(wgame->win_score);
-    wgame->win_score = NULL;
+void del_game_win(gameptr game_data){
+    delwin(game_data->win_board);
+    game_data->win_board = NULL;
+    delwin(game_data->win_next);
+    game_data->win_next = NULL;
+    delwin(game_data->win_legend);
+    game_data->win_legend = NULL;
+    delwin(game_data->win_score);
+    game_data->win_score = NULL;
 }
 
-void game_resize(gameptr wgame){
+void game_resize(gameptr game_data){
     if(check_terminal_size()){
         int new_y = center_y(MIN_WINDOW_HEIGHT);
         int new_x = center_x(MIN_WINDOW_WIDTH);
@@ -169,26 +183,26 @@ void game_resize(gameptr wgame){
         int legend_y = new_y + BLOCK_WINDOW_HEIGHT + SPACE_BETWEEN_WINDOWS;
         int scoreboard_y = legend_y + SPACE_BETWEEN_WINDOWS + LEGEND_WINDOW_HEIGHT;
 
-//        if(wgame->win_board != NULL && getmaxy(stdscr)>MIN_WINDOW_HEIGHT+1){
-//            if(wgame->win_x != new_x || wgame->win_y != new_y){
-//                mvwin(wgame->win_board, new_y, new_x);
-//                mvwin(wgame->win_next, new_y, panel_x);
-//                mvwin(wgame->win_legend, legend_y, panel_x);
-//                mvwin(wgame->win_score, scoreboard_y, panel_x);
+//        if(game_data->win_board != NULL && getmaxy(stdscr)>MIN_WINDOW_HEIGHT+1){
+//            if(game_data->win_x != new_x || game_data->win_y != new_y){
+//                mvwin(game_data->win_board, new_y, new_x);
+//                mvwin(game_data->win_next, new_y, panel_x);
+//                mvwin(game_data->win_legend, legend_y, panel_x);
+//                mvwin(game_data->win_score, scoreboard_y, panel_x);
 //            }
 //        }
 //        else{
-            wgame->win_board = newwin(MIN_WINDOW_HEIGHT, BOARD_WIN_WIDTH, new_y, new_x);
-            wgame->win_next = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
-            wgame->win_legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
-            wgame->win_score= newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
+            game_data->win_board = newwin(MIN_WINDOW_HEIGHT, BOARD_WIN_WIDTH, new_y, new_x);
+            game_data->win_next = newwin(BLOCK_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, new_y, panel_x);
+            game_data->win_legend = newwin(LEGEND_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, legend_y, panel_x);
+            game_data->win_score= newwin(SCORE_WINDOW_HEIGHT, SIDE_PANEL_WIDTH, scoreboard_y, panel_x);
 //        }
-        wgame->win_x = new_x;
-        wgame->win_y = new_y;
-        draw_game(wgame);
+        game_data->win_x = new_x;
+        game_data->win_y = new_y;
+        draw_game(game_data);
     }
-    else if(wgame->win_board != NULL){
-        del_game_win(wgame);
+    else if(game_data->win_board != NULL){
+        del_game_win(game_data);
     }
 }
 

@@ -2,6 +2,7 @@
 #define DRAW_H
 #include <ncurses.h>
 #include "common.h"
+#include "game.h"
 
 extern short colors[];
 extern int block_count;

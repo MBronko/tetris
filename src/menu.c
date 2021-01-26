@@ -35,7 +35,7 @@ void reset_game_data(gameptr data) {
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
 //            free(data->board[x][y]);
 //            data->board[x][y] = NULL;
-            data->board[y][x] = 4;
+            data->board[y][x] = -1;
         }
     }
 //    for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
