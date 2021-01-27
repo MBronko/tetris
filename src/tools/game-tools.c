@@ -69,28 +69,18 @@ int is_legal_pos(gameptr game_data) {
     return 1;
 }
 
-void shift_board(gameptr game_data, int line) {
-    for (int y = line+1; y < BOARD_HEIGHT_TOTAL; y++) {
-        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
-            game_data->board[y-1][x] = game_data->board[y][x];
-        }
-    }
-    for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
-        game_data->board[BOARD_HEIGHT_TOTAL-1][x] = -1;
-    }
-}
-
 void get_new_block(gameptr game_data){
+    int new_next;
+    do{
+        new_next = get_rand_block_num();
+    } while (game_data->next_block == new_next || game_data->act_block.color == new_next);
+
     if(game_data->next_block == -1) {
         game_data->act_block = get_block(get_rand_block_num());
     }
     else{
         game_data->act_block = get_block(game_data->next_block);
     }
-    int new_next;
-    do{
-        new_next = get_rand_block_num();
-    } while (game_data->next_block == new_next);
     game_data->next_block = new_next;
     draw_next_block(game_data);
 
@@ -101,23 +91,44 @@ void get_new_block(gameptr game_data){
     }
 }
 
+void shift_board(gameptr game_data, int line) {
+    int y;
+    int check = 1;
+    for(y = line+1; check; y++){
+        check = 0;
+        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
+            if(game_data->board[y][x] != -1) check = 1;
+            game_data->board[y-1][x] = game_data->board[y][x];
+        }
+    }
+//    for (int y = line+1; y < BOARD_HEIGHT_TOTAL; y++) {
+//        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
+//            game_data->board[y-1][x] = game_data->board[y][x];
+//        }
+//    }
+}
+
 void remove_lines(gameptr game_data){
     int n = game_data->act_block.n;
     int off_y = game_data->act_block.y;
-    int score = 0, counter = 1;
-    for (int y = off_y; y <= off_y+n; y++) {
+    int score = 0, counter = 0;
+    int max_y = 0, actual_max_y = game_data->used_lines;
+    for (int y = off_y + n; y >= off_y; y--) {
         if(y<0) continue;
+        if(y > max_y) max_y = y;
         int check = 1;
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
             if(game_data->board[y][x] == -1) check = 0;
         }
         if(check){
             shift_board(game_data, y);
-            score += counter;
             counter++;
-            y--;
+            score += counter;
+            game_data->used_lines--;
         }
     }
+    game_data->used_lines = actual_max_y < max_y ? max_y : actual_max_y;
+    game_data->used_lines-=counter;
     game_data->score += score*100;
     draw_scoreboard(game_data);
 }
@@ -127,7 +138,6 @@ void place_block(gameptr game_data){
     int off_x = game_data->act_block.x;
     int off_y = game_data->act_block.y;
     int rotation = game_data->act_block.rotation;
-
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
             if(game_data->act_block.board[process_rotation(x,y,n,rotation)]){

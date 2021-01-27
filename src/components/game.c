@@ -8,9 +8,10 @@
 #include "../tools/game-tools.h"
 
 int jumped = 0, quit = 0;
-//    dane z klockami
+
 short colors[] = {COLOR_CYAN, COLOR_BLUE, COLOR_WHITE, COLOR_YELLOW, COLOR_GREEN, COLOR_MAGENTA, COLOR_RED};
 int block_count = 7;
+
 block blocks[7] = {
         {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, 4, 0},  // i
         {{0, 0, 0, 1, 1, 1, 1, 0, 0}, 3, 1},  // j
@@ -20,8 +21,12 @@ block blocks[7] = {
         {{0, 0, 0, 1, 1, 1, 0, 1, 0}, 3, 5},  // t
         {{0, 1, 1, 1, 1, 0, 0, 0, 0}, 3, 6}   // z
 };
+//        {{map}, square size, color}
+//       6, 7, 8
+//       3, 4, 5      3
+//       0, 1, 2
 
-int gravity(gameptr game_data) {
+void gravity(gameptr game_data) {
     game_data->act_block.y--;
     if(!is_legal_pos(game_data)){
         game_data->act_block.y++;
@@ -29,14 +34,13 @@ int gravity(gameptr game_data) {
         place_block(game_data);
     }
 
-//    sprawdz czy game_over po ruchu, zwróć 0, może header z game over
-
-    return 1;
+    draw_board(game_data);
 }
 
 void move_block(gameptr game_data, int dir){
     game_data->act_block.x += dir;
-    if(!is_legal_pos(game_data)) game_data->act_block.x -= dir;
+    if(is_legal_pos(game_data)) draw_board(game_data);
+    else game_data->act_block.x -= dir;
 }
 
 void rotate(gameptr game_data, int dir) {
@@ -44,7 +48,10 @@ void rotate(gameptr game_data, int dir) {
     if(game_data->act_block.rotation < 0) game_data->act_block.rotation = 3;
     if(game_data->act_block.rotation > 3) game_data->act_block.rotation = 0;
 
-    if(!is_legal_pos(game_data)){
+    if(is_legal_pos(game_data)){
+        draw_board(game_data);
+    }
+    else{
         game_data->act_block.rotation -= dir;
         if(game_data->act_block.rotation < 0) game_data->act_block.rotation = 3;
         if(game_data->act_block.rotation > 3) game_data->act_block.rotation = 0;
@@ -63,7 +70,7 @@ void *gravity_loop(void *value){
         nanosleep(&time, NULL);
         count++;
         if(jumped){
-           count = 0;
+            count = 0;
             jumped = 0;
         }
         if(count >= TICK_TIME_MS/MINI_TICK_TIME_MS){
@@ -99,37 +106,36 @@ int game(gameptr game_data) {
     game_resize(game_data);
     pthread_create(&thread, NULL, gravity_loop, game_data);
     while (quit == 0 && (c = getch()) != ERR) {
-//        if(quit == 3) break;
         if (c == KEY_RESIZE) {
             game_resize(game_data);
             continue;
         }
         if (game_data->win_board == NULL) continue;
         switch (tolower(c)) {
-            case ' ':
+            case KEY_DOWN:
+            case 's':
                 jumped = 1;
                 gravity(game_data);
                 break;
-            case KEY_ENTER:
-            case 10:
-                if(quit == 3) skip_gameover = 1;
-                continue;
             case KEY_UP:
-            case 'w':
+            case 'x':
                 rotate(game_data, 1);
                 break;
             case KEY_LEFT:
             case 'a':
                 move_block(game_data, -1);
                 break;
-            case KEY_DOWN:
-            case 's':
-                rotate(game_data, -1);
-                break;
             case KEY_RIGHT:
             case 'd':
                 move_block(game_data, 1);
                 break;
+            case 'z':
+                rotate(game_data, -1);
+                break;
+            case KEY_ENTER:
+            case 10:
+                if(quit == 3) skip_gameover = 1;
+                continue;
             case 'q':
                 quit = 2;
                 continue;
@@ -138,9 +144,6 @@ int game(gameptr game_data) {
                 continue;
             default:
                 continue;
-        }
-        if(!quit){
-            draw_board(game_data);
         }
     }
     while(quit == 3 && !skip_gameover && (c = getch())){

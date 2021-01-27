@@ -7,20 +7,20 @@
 #include "../components/game.h"
 
 void draw_board(gameptr game_data){
-    wclear(game_data->win_board);
-
     char title[] = "Board";
-    box(game_data->win_board, 0, 0);
+    wclear(game_data->win_board);
     mvwprintw(game_data->win_board, 0, center_text(game_data->win_board, title), title);
-    for (int y = 0; y < BOARD_GAME_HEIGHT; y++) {
+    char blank_line[] = " . . . . . . . . . .";
+    for (int y = 1; y <= BOARD_GAME_HEIGHT; y++) {
+        mvwprintw(game_data->win_board, y, 1, "%s", blank_line);
+    }
+
+    for (int y = 0; y < game_data->used_lines; y++) {
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
             if(game_data->board[y][x] != -1){
                 wattron(game_data->win_board, COLOR_PAIR(colors[game_data->board[y][x]]));
                 mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, "  ");
                 wattroff(game_data->win_board, COLOR_PAIR(colors[game_data->board[y][x]]));
-            }
-            else{
-                mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, " .");
             }
         }
     }
@@ -37,6 +37,7 @@ void draw_board(gameptr game_data){
             }
         }
     }
+    box(game_data->win_board, 0, 0);
 
     wrefresh(game_data->win_board);
 }

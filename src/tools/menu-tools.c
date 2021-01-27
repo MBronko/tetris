@@ -10,6 +10,7 @@
 void reset_game_data(gameptr data) {
     data->next_block = -1;
     data->score = 0;
+    data->used_lines = 0;
     for (int y = 0; y < BOARD_HEIGHT_TOTAL; y++) {
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
             data->board[y][x] = -1;

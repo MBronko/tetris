@@ -50,9 +50,9 @@ void draw_legend(gameptr game_data){
     char *content[] = {
             "LEFT      \xe2\x86\x90 A",
             "RIGHT     \xe2\x86\x92 D",
-            "ROTATE\xE2\x86\xBB   \xe2\x86\x91 W",
-            "ROTATE\xE2\x86\xBA   \xe2\x86\x93 S",
-            "DOWN    SPACE",
+            "ROTATE\xE2\x86\xBB   \xe2\x86\x91 X",
+            "ROTATE\xE2\x86\xBA     z",
+            "DOWN      \xe2\x86\x93 S",
             "PAUSE       P",
             "QUIT        Q",
     };

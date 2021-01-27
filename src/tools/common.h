@@ -54,6 +54,7 @@ typedef struct game_str{
     WINDOW * win_legend;
     WINDOW * win_score;
     int board[BOARD_HEIGHT_TOTAL][BOARD_GAME_WIDTH];
+    int used_lines;
     block act_block;
     int next_block;
     int score;
