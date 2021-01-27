@@ -11,7 +11,7 @@
 #define BOARD_GAME_HEIGHT 20
 
 #define BOARD_WIN_WIDTH (2*BOARD_GAME_WIDTH+BOX_BORDER)
-#define BOARD_HEIGHT_BUF 3
+#define BOARD_HEIGHT_BUF 5
 #define BOARD_HEIGHT_TOTAL BOARD_GAME_HEIGHT+BOARD_HEIGHT_BUF
 
 #define SIDE_PANEL_WIDTH (13+BOX_BORDER)
@@ -25,15 +25,6 @@
 
 #define BLOCK_MAX_SIZE 4
 
-//typedef struct pixel *pixelptr;
-//typedef struct pixel {
-//    int x;
-//    int y;
-//    int type;
-//    int color;
-//} pixel;
-
-typedef struct block_str *blockptr;
 typedef struct block_str {
     int board[(BLOCK_MAX_SIZE)*(BLOCK_MAX_SIZE)];
     int n;

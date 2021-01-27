@@ -4,10 +4,10 @@
 
 #include <ncurses.h>
 
-#include "common.h"
+#include "../tools/common.h"
 #include "menu.h"
-#include "game.h"
-#include "draw.h"
+#include "../tools/menu-tools.h"
+#include "../draw/draw-menu.h"
 
 //char pause_header[] = "Pause";
 
@@ -28,50 +28,6 @@ char *options[] = {
 };
 int n_options = sizeof(options) / sizeof(options[0]);
 
-void reset_game_data(gameptr data) {
-    data->next_block = -1;
-    data->score = 0;
-    for (int y = 0; y < BOARD_HEIGHT_TOTAL; y++) {
-        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
-//            free(data->board[x][y]);
-//            data->board[x][y] = NULL;
-            data->board[y][x] = -1;
-        }
-    }
-//    for (int x = 0; x < BLOCK_MAX_SIZE; x++) {
-//        for (int y = 0; y < BLOCK_MAX_SIZE; y++) {
-//            free(data->next_block->board[x][y]);
-//            data->next_block->board[x][y] = NULL;
-//        }
-//    }
-}
-
-char *get_rand_header() {
-    int rand_value = (rand() % (n_headers));
-    return headers[rand_value];
-}
-
-void menu_option(menuptr wmenu, gameptr wgame){
-    switch (wmenu->highlight) {
-        case 2:
-            reset_game_data(wgame);
-        case 1:
-            wmenu->game_active = 1;
-            wmenu->highlight = 1;
-//                        rand_header = pause_header;
-            wmenu->rand_header = get_rand_header();
-
-            delwin(wmenu->win);
-            wmenu->win = NULL;
-
-            wmenu->quit = game(wgame);
-            del_game_win(wgame);
-            break;
-        case 3:
-            wmenu->quit = 1;
-    }
-}
-
 void menu() {
     menuptr wmenu = (menuptr)calloc(1, sizeof(menu_data));
     wmenu->win = NULL;
@@ -87,9 +43,6 @@ void menu() {
     wgame->win_score = NULL;
 
     menu_resize(wmenu);
-
-//    dataptr data = (dataptr)calloc(1, sizeof(game_data));
-//    data->next_block = (blockptr)calloc(1, sizeof(block));
 
     int ch;
     while (!wmenu->quit && (ch = getch()) != 'q') {
@@ -119,8 +72,6 @@ void menu() {
         draw_menu(wmenu);
     }
 
-    reset_game_data(wgame);
     free(wgame);
-//    free(data->next_block);
     free(wmenu);
 }

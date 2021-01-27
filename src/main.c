@@ -1,6 +1,6 @@
 #include <ncurses.h>
 #include <locale.h>
-#include "menu.h"
+#include "components/menu.h"
 
 int main() {
     setlocale(LC_ALL, "");
@@ -16,9 +16,6 @@ int main() {
 
     menu();
 
-    clear();
-    addstr("press any key to exit...");
-    getch();
     endwin();
     return 0;
 }
