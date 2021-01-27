@@ -1,7 +1,3 @@
-# my tetris game made in c with ncurses lib 
+# Tetris made in c using ncurses library
 
-## TODO
-### wygląd
-### rozgrywka
-### save'y
-### opcje
+![game view](gameview.png)
