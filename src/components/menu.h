@@ -2,6 +2,8 @@
 #define MENU_H
 #include "../tools/common.h"
 
+extern char pause_header[];
+
 extern char *options[];
 extern int n_options;
 

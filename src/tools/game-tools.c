@@ -87,7 +87,11 @@ void get_new_block(gameptr game_data){
     else{
         game_data->act_block = get_block(game_data->next_block);
     }
-    game_data->next_block = get_rand_block_num();
+    int new_next;
+    do{
+        new_next = get_rand_block_num();
+    } while (game_data->next_block == new_next);
+    game_data->next_block = new_next;
     draw_next_block(game_data);
 
     if(!is_legal_pos(game_data)){

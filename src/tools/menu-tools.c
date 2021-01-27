@@ -29,8 +29,7 @@ void menu_option(menuptr wmenu, gameptr wgame){
         case 1:
             wmenu->game_active = 1;
             wmenu->highlight = 1;
-//                        rand_header = pause_header;
-            wmenu->rand_header = get_rand_header();
+            wmenu->rand_header = pause_header;
 
             delwin(wmenu->win);
             wmenu->win = NULL;

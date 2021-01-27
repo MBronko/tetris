@@ -9,7 +9,7 @@
 #include "../tools/menu-tools.h"
 #include "../draw/draw-menu.h"
 
-//char pause_header[] = "Pause";
+char pause_header[] = "Pause";
 
 char *headers[] = {
         "Hello!!",

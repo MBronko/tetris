@@ -7,6 +7,8 @@
 #include "../components/game.h"
 
 void draw_board(gameptr game_data){
+    wclear(game_data->win_board);
+
     char title[] = "Board";
     box(game_data->win_board, 0, 0);
     mvwprintw(game_data->win_board, 0, center_text(game_data->win_board, title), title);
@@ -41,6 +43,7 @@ void draw_board(gameptr game_data){
 
 void draw_next_block(gameptr game_data){
     wclear(game_data->win_next);
+
     char title[] = "Next";
     box(game_data->win_next, 0, 0);
     mvwprintw(game_data->win_next, 0, center_text(game_data->win_next, title), title);
@@ -75,6 +78,8 @@ void draw_next_block(gameptr game_data){
 
 
 void draw_scoreboard(gameptr game_data){
+    wclear(game_data->win_score);
+
     char title[] = "Score";
     char score_str[20];
     box(game_data->win_score, 0, 0);
@@ -128,15 +133,18 @@ void game_resize(gameptr game_data){
 }
 
 void gameover_view(gameptr game_data){
-//    jakiś basic widok z napisem game over
-    char message[] = "GAME OVER";
+    clear();
+    char msg[20] = "GAME OVER";
+    char score_msg[20] = "Score: ";
+    char submsg[20] = "Press ENTER to exit";
     int y = center_y(0);
+
     char score_str[20];
     sprintf(score_str, "%d", game_data->score);
-    clear();
-//    wclear(game_data->win_board);
-    refresh();
-    mvprintw(y-1, center_text(stdscr, message), message);
-    mvprintw(y-1, center_text(stdscr, score_str), score_str);
+    strcat(score_msg, score_str);
+
+    mvprintw(y-2, center_text(stdscr, msg), msg);
+    mvprintw(y, center_text(stdscr, score_msg), score_msg);
+    mvprintw(y+2, center_text(stdscr, submsg), submsg);
     refresh();
 }

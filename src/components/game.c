@@ -59,7 +59,7 @@ void *gravity_loop(void *value){
     time.tv_sec = 0;
     time.tv_nsec = (MINI_TICK_TIME_MS)*1000000L; // 1ms = 1.000.000ns
 
-    while(!quit){
+    while(quit == 0){
         nanosleep(&time, NULL);
         count++;
         if(jumped){
@@ -72,6 +72,7 @@ void *gravity_loop(void *value){
             count = 0;
         }
     }
+    gameover_view(game_data);
 
     return NULL;
 }
@@ -91,13 +92,14 @@ int game(gameptr game_data) {
     }
 
     jumped = quit = 0;
-    int c;
+    int c, skip_gameover = 0;
     pthread_t thread;
 
     clear();
     game_resize(game_data);
     pthread_create(&thread, NULL, gravity_loop, game_data);
-    while (!quit && (c = getch()) != ERR) {
+    while (quit == 0 && (c = getch()) != ERR) {
+//        if(quit == 3) break;
         if (c == KEY_RESIZE) {
             game_resize(game_data);
             continue;
@@ -107,27 +109,26 @@ int game(gameptr game_data) {
             case ' ':
                 jumped = 1;
                 gravity(game_data);
-                draw_board(game_data);
                 break;
+            case KEY_ENTER:
+            case 10:
+                if(quit == 3) skip_gameover = 1;
+                continue;
             case KEY_UP:
             case 'w':
                 rotate(game_data, 1);
-                draw_board(game_data);
                 break;
             case KEY_LEFT:
             case 'a':
                 move_block(game_data, -1);
-                draw_board(game_data);
                 break;
             case KEY_DOWN:
             case 's':
                 rotate(game_data, -1);
-                draw_board(game_data);
                 break;
             case KEY_RIGHT:
             case 'd':
                 move_block(game_data, 1);
-                draw_board(game_data);
                 break;
             case 'q':
                 quit = 2;
@@ -138,6 +139,13 @@ int game(gameptr game_data) {
             default:
                 continue;
         }
+        if(!quit){
+            draw_board(game_data);
+        }
+    }
+    while(quit == 3 && !skip_gameover && (c = getch())){
+        if(c == KEY_ENTER || c == 10) break;
+        gameover_view(game_data);
     }
     return quit - 1;
 }
