@@ -10,7 +10,6 @@
 void reset_game_data(gameptr data) {
     data->next_block = -1;
     data->score = 0;
-    data->used_lines = 0;
     for (int y = 0; y < BOARD_HEIGHT_TOTAL; y++) {
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
             data->board[y][x] = -1;
@@ -35,18 +34,17 @@ void menu_option(menuptr wmenu, gameptr wgame){
             delwin(wmenu->win);
             wmenu->win = NULL;
 
-            int res = game(wgame);
-            if(res == 2){
+            int game_state = game(wgame);
+            if(game_state == GAME_STATE_GAMEOVER){
                 wmenu->highlight = 2;
                 wmenu->game_active = 0;
                 wmenu->rand_header = "Game Over";
             }
-            else{
-                wmenu->quit = res;
-            }
+            wmenu->quit = game_state;
+
             del_game_win(wgame);
             break;
         case 3:
-            wmenu->quit = 1;
+            wmenu->quit = GAME_STATE_QUIT;
     }
 }

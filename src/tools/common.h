@@ -25,6 +25,16 @@
 
 #define BLOCK_MAX_SIZE 4
 
+#define KEY_ENTER_2 10
+
+#define DIRECTION_RIGHT 1
+#define DIRECTION_LEFT -1
+
+#define GAME_STATE_ONGOING 0
+#define GAME_STATE_QUIT 1
+#define GAME_STATE_PAUSE 2
+#define GAME_STATE_GAMEOVER 3
+
 typedef struct block_str {
     int board[(BLOCK_MAX_SIZE)*(BLOCK_MAX_SIZE)];
     int n;
@@ -54,10 +64,12 @@ typedef struct game_str{
     WINDOW * win_legend;
     WINDOW * win_score;
     int board[BOARD_HEIGHT_TOTAL][BOARD_GAME_WIDTH];
-    int used_lines;
     block act_block;
     int next_block;
     int score;
 } game_data;
+
+#define min(x, y) ((x)<(y)?x:y)
+#define max(x, y) ((x)>(y)?x:y)
 
 #endif

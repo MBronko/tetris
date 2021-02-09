@@ -14,7 +14,7 @@ void shift_board(gameptr game_data, int line);
 
 void get_new_block(gameptr game_data);
 
-void remove_lines(gameptr game_data);
+bool remove_lines(gameptr game_data);
 
 void place_block(gameptr game_data);
 

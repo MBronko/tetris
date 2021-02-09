@@ -6,38 +6,58 @@
 #include "draw-game.h"
 #include "../components/game.h"
 
-void draw_board(gameptr game_data){
+void draw_colored(WINDOW *win, int y, int x, int color, char str[]){
+    wattron(win, COLOR_PAIR(global_colors[color]));
+    mvwprintw(win, y, x, str);
+    wattroff(win, COLOR_PAIR(global_colors[color]));
+}
+
+void draw_board(gameptr game_data, bool draw_whole_board){
     char title[] = "Board";
-    wclear(game_data->win_board);
-    mvwprintw(game_data->win_board, 0, center_text(game_data->win_board, title), title);
-    char blank_line[] = " . . . . . . . . . .";
-    for (int y = 1; y <= BOARD_GAME_HEIGHT; y++) {
-        mvwprintw(game_data->win_board, y, 1, "%s", blank_line);
+    int min_y, max_y, min_x, max_x;
+
+//    if its not necessary draw only around actual block
+    if(draw_whole_board){
+        box(game_data->win_board, 0, 0);
+        mvwprintw(game_data->win_board, 0, center_text(game_data->win_board, title), title);
+        min_y = 0;
+        max_y = BOARD_GAME_HEIGHT;
+        min_x = 0;
+        max_x = BOARD_GAME_WIDTH;
+    }
+    else{
+        min_y = max(game_data->act_block.y - 1, 0);
+        max_y = min(game_data->act_block.y + game_data->act_block.n + 1, BOARD_GAME_HEIGHT);
+        min_x = max(game_data->act_block.x - 1, 0);
+        max_x = min(game_data->act_block.x + game_data->act_block.n + 1, BOARD_GAME_WIDTH);
     }
 
-    for (int y = 0; y < game_data->used_lines; y++) {
-        for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
+//    draw dots
+    for (int y = min_y; y < max_y; y++) {
+        for (int x = min_x; x < max_x; x++) {
+            mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT - y, 2*x+1, " .");
+        }
+    }
+
+//    draw board blocks
+    for (int y = min_y; y < max_y; y++) {
+        for (int x = min_x; x < max_x; x++) {
             if(game_data->board[y][x] != -1){
-                wattron(game_data->win_board, COLOR_PAIR(colors[game_data->board[y][x]]));
-                mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, "  ");
-                wattroff(game_data->win_board, COLOR_PAIR(colors[game_data->board[y][x]]));
+                draw_colored(game_data->win_board, BOARD_GAME_HEIGHT-y, 2*x+1, game_data->board[y][x],"  ");
             }
         }
     }
 
+//    draw actual block
     int n = game_data->act_block.n;
     int rotation = game_data->act_block.rotation;
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
-            if(y+game_data->act_block.y < BOARD_GAME_HEIGHT &&
-               game_data->act_block.board[process_rotation(x, y, n, rotation)]){
-                wattron(game_data->win_board, COLOR_PAIR(colors[game_data->act_block.color]));
-                mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT-(y+game_data->act_block.y), 2*(x+game_data->act_block.x)+1, "  ");
-                wattroff(game_data->win_board, COLOR_PAIR(colors[game_data->act_block.color]));
+            if(y+game_data->act_block.y < BOARD_GAME_HEIGHT && game_data->act_block.board[process_rotation(x, y, n, rotation)]){
+                draw_colored(game_data->win_board, BOARD_GAME_HEIGHT-(y+game_data->act_block.y), 2*(x+game_data->act_block.x)+1, game_data->act_block.color, "  ");
             }
         }
     }
-    box(game_data->win_board, 0, 0);
 
     wrefresh(game_data->win_board);
 }
@@ -49,7 +69,7 @@ void draw_next_block(gameptr game_data){
     box(game_data->win_next, 0, 0);
     mvwprintw(game_data->win_next, 0, center_text(game_data->win_next, title), title);
 
-    block next_block = blocks[game_data->next_block];
+    block next_block = global_blocks[game_data->next_block];
     int n = next_block.n;
 
 //    offset for cosmetic purpose
@@ -66,9 +86,7 @@ void draw_next_block(gameptr game_data){
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
             if(next_block.board[n*y+x]){
-                wattron(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
-                mvwprintw(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y+y_off, 2*x+7-n, "  ");
-                wattroff(game_data->win_next, COLOR_PAIR(colors[game_data->next_block]));
+                draw_colored(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y+y_off, 2*x+7-n, game_data->next_block, "  ");
             }
         }
     }
@@ -94,12 +112,11 @@ void draw_scoreboard(gameptr game_data){
 void draw_game(gameptr game_data){
     clear();
     refresh();
-    draw_board(game_data);
+    draw_board(game_data, true);
     draw_next_block(game_data);
     draw_legend(game_data);
     draw_scoreboard(game_data);
 }
-
 
 void game_resize(gameptr game_data){
     if(check_terminal_size()){
@@ -135,6 +152,7 @@ void game_resize(gameptr game_data){
 
 void gameover_view(gameptr game_data){
     clear();
+
     char msg[20] = "GAME OVER";
     char score_msg[20] = "Score: ";
     char submsg[20] = "Press ENTER to exit";

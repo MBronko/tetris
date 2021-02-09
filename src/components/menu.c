@@ -45,7 +45,7 @@ void menu() {
     menu_resize(wmenu);
 
     int ch;
-    while (!wmenu->quit && (ch = getch()) != 'q') {
+    while (wmenu->quit != GAME_STATE_QUIT && (ch = getch()) != 'q') {
         if (ch == KEY_RESIZE) {
             menu_resize(wmenu);
             continue;
@@ -62,8 +62,8 @@ void menu() {
             case 's':
                 if (wmenu->highlight != n_options) wmenu->highlight++;
                 break;
-            case 10:
             case KEY_ENTER:
+            case KEY_ENTER_2:
                 menu_option(wmenu, wgame);
                 menu_resize(wmenu);
             default:

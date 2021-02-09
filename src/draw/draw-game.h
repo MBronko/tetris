@@ -2,7 +2,7 @@
 #define DRAW_GAME_H
 
 
-void draw_board(gameptr game_data);
+void draw_board(gameptr game_data, bool draw_whole_board);
 
 void draw_next_block(gameptr game_data);
 
