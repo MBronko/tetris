@@ -164,6 +164,7 @@ int game(gameptr game_data) {
             global_game_state = GAME_STATE_QUIT;
             break;
         }
+        gameover_view(game_data);
     }
 
 //    wait for loop to end to avoid loops stacking
