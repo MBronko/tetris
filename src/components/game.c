@@ -14,16 +14,19 @@ int global_game_state = GAME_STATE_ONGOING;
 const short global_colors[] = {COLOR_CYAN, COLOR_BLUE, COLOR_WHITE, COLOR_YELLOW, COLOR_GREEN, COLOR_MAGENTA, COLOR_RED};
 const int global_block_count = 7;
 
+//    placeholder is because of error when i dont fill every variable
+//    these variables are x, y, rotation
+#define PLACEHOLDER 0,0,0
 block global_blocks[7] = {
-        {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, 4, 0},  // i
-        {{0, 0, 0, 1, 1, 1, 1, 0, 0}, 3, 1},  // j
-        {{0, 0, 0, 1, 1, 1, 0, 0, 1}, 3, 2},  // l
-        {{1, 1, 1, 1}, 2, 3},  // o
-        {{1, 1, 0, 0, 1, 1, 0, 0, 0}, 3, 4},  // s
-        {{0, 0, 0, 1, 1, 1, 0, 1, 0}, 3, 5},  // t
-        {{0, 1, 1, 1, 1, 0, 0, 0, 0}, 3, 6}   // z
+        {{0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, 4, 0, PLACEHOLDER},  // i
+        {{0, 0, 0, 1, 1, 1, 1, 0, 0}, 3, 1, PLACEHOLDER},  // j
+        {{0, 0, 0, 1, 1, 1, 0, 0, 1}, 3, 2, PLACEHOLDER},  // l
+        {{1, 1, 1, 1}, 2, 3, PLACEHOLDER},  // o
+        {{1, 1, 0, 0, 1, 1, 0, 0, 0}, 3, 4, PLACEHOLDER},  // s
+        {{0, 0, 0, 1, 1, 1, 0, 1, 0}, 3, 5, PLACEHOLDER},  // t
+        {{0, 1, 1, 1, 1, 0, 0, 0, 0}, 3, 6, PLACEHOLDER}   // z
 };
-//       {{map}, square size, color}
+//       {{map}, square size, color, }
 //       6, 7, 8       3
 //       3, 4, 5
 //       0, 1, 2

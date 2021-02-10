@@ -30,6 +30,7 @@ void menu_option(menuptr menu_data, gameptr game_data){
     switch (menu_data->highlight) {
         case 2:
             reset_game_data(game_data);
+//            fall through
         case 1:
             menu_data->game_active = true;
             menu_data->highlight = 1;
