@@ -50,10 +50,10 @@ typedef struct menu_str{
     int win_y;
     WINDOW *win;
     char *rand_header;
-    int game_active;
+    bool game_active;
     int highlight;
-    int quit;
-} menu_data;
+    int menu_state;
+} menu_data_str;
 
 typedef struct game_str *gameptr;
 typedef struct game_str{
@@ -67,7 +67,7 @@ typedef struct game_str{
     block act_block;
     int next_block;
     int score;
-} game_data;
+} game_data_str;
 
 #define min(x, y) ((x)<(y)?x:y)
 #define max(x, y) ((x)>(y)?x:y)

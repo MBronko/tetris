@@ -83,17 +83,16 @@ void *gravity_loop(void *value){
     while(global_game_state == GAME_STATE_ONGOING){
         nanosleep(&time, NULL);
         count++;
+//        if user used gravity then reset timer
         if(global_jumped){
             count = 0;
             global_jumped = false;
         }
         if(count >= TICK_TIME_MS/MINI_TICK_TIME_MS){
             gravity(game_data);
-//            draw_board(game_data);
             count = 0;
         }
     }
-//    gameover_view(game_data);
 
     return NULL;
 }

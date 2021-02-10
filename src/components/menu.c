@@ -9,69 +9,72 @@
 #include "../tools/menu-tools.h"
 #include "../draw/draw-menu.h"
 
-char pause_header[] = "Pause";
+char global_pause_header[] = "Pause";
+char global_gameover_header[] = "Game Over";
 
-char *headers[] = {
+//    random generated headers (like minecraft xD)
+char *global_headers[] = {
         "Hello!!",
-        "To moje bagno!",
+        "Let's Play Tetris!",
         "Siemanko",
         "No hejka",
-        "Gitara siema",
-        "MitFar tu był"
+        "Gitara siema"
 };
-int n_headers = sizeof(headers) / sizeof(headers[0]);
+int global_n_headers = sizeof(global_headers) / sizeof(global_headers[0]);
 
-char *options[] = {
+char *global_options[] = {
         "Resume",
         "New Game",
         "Quit",
 };
-int n_options = sizeof(options) / sizeof(options[0]);
+int global_n_options = sizeof(global_options) / sizeof(global_options[0]);
 
 void menu() {
-    menuptr wmenu = (menuptr)calloc(1, sizeof(menu_data));
-    wmenu->win = NULL;
-    wmenu->rand_header = get_rand_header();
-    wmenu->game_active = 0;
-    wmenu->highlight = 2;
-    wmenu->quit = 0;
+    menuptr menu_data = (menuptr)calloc(1, sizeof(menu_data_str));
+    menu_data->win = NULL;
+    menu_data->rand_header = get_rand_header();
+    menu_data->game_active = false;
+//    highlight second position from top
+    menu_data->highlight = 2;
+    menu_data->menu_state = GAME_STATE_ONGOING;
 
-    gameptr wgame = (gameptr)calloc(1, sizeof(game_data));
-    wgame->win_board = NULL;
-    wgame->win_next = NULL;
-    wgame->win_legend = NULL;
-    wgame->win_score = NULL;
+    gameptr game_data = (gameptr)calloc(1, sizeof(game_data_str));
+    game_data->win_board = NULL;
+    game_data->win_next = NULL;
+    game_data->win_legend = NULL;
+    game_data->win_score = NULL;
+    menu_resize(menu_data);
 
-    menu_resize(wmenu);
-
-    int ch;
-    while (wmenu->quit != GAME_STATE_QUIT && (ch = getch()) != 'q') {
-        if (ch == KEY_RESIZE) {
-            menu_resize(wmenu);
+    int c;
+    while (menu_data->menu_state != GAME_STATE_QUIT && (c = getch()) != 'q') {
+        if (c == KEY_RESIZE) {
+            menu_resize(menu_data);
             continue;
         }
-        if (wmenu->win == NULL) continue;
-        switch (tolower(ch)) {
+        if (menu_data->win == NULL) continue;
+        switch (tolower(c)) {
             case KEY_UP:
             case 'w':
-                if (wmenu->highlight + wmenu->game_active != 2) {
-                    wmenu->highlight--;
+//                if game is inactive (0) then minimal highlight is 2
+//                if game is active (1) then minimal highlight is 1
+                if (menu_data->highlight + (int)menu_data->game_active > 2) {
+                    menu_data->highlight--;
                 }
                 break;
             case KEY_DOWN:
             case 's':
-                if (wmenu->highlight != n_options) wmenu->highlight++;
+                if (menu_data->highlight < global_n_options) menu_data->highlight++;
                 break;
             case KEY_ENTER:
             case KEY_ENTER_2:
-                menu_option(wmenu, wgame);
-                menu_resize(wmenu);
+                menu_option(menu_data, game_data);
+                menu_resize(menu_data);
             default:
                 continue;
         }
-        draw_menu(wmenu);
+        draw_menu(menu_data);
     }
 
-    free(wgame);
-    free(wmenu);
+    free(game_data);
+    free(menu_data);
 }

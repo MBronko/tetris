@@ -16,6 +16,7 @@ block get_block(int n){
     new.rotation = 0;
     new.x = (BOARD_GAME_WIDTH-new.n)/2;
     new.y = BOARD_GAME_HEIGHT;
+//    if new block is 4 units wide then shift it to the left
     if (new.n == 4) new.y--;
     return new;
 }
@@ -63,8 +64,17 @@ int is_legal_pos(gameptr game_data) {
     return 1;
 }
 
-//   https://youtu.be/8OK8_tHeCIA?t=362  formulas explanation
+//    get x, y and return index of one dimensional block array after processing rotation
+//              indexes of array where
+//    n=3 and rotation=0    n=3 and rotation=1
+//          6 7 8                 0 3 6
+//          3 4 5                 1 4 7
+//          0 1 2                 2 5 8
+//    so this function for x=0, y=0, n=3
+//    when rotation=0 returns 0
+//    when rotation=1 returns 2
 int process_rotation(int x, int y, int n, int rotation){
+//   https://youtu.be/8OK8_tHeCIA?t=362  formulas explanation
     if(n == 3){
         switch (rotation) {
             case 0:
@@ -89,23 +99,29 @@ int process_rotation(int x, int y, int n, int rotation){
                 return 12+y-x*n;
         }
     }
-//    only blocks that are rotating right now are the ones with size of 3 or 4
+//    only rotated blocks right now are the ones with size of 3 or 4
 //    might be changed in case of adding new blocks of different sizes
     return y*n+x;
 }
 
+//    shift every higher row down
+//          1          0
+//    like  2    to    1   when line=2 (line 2 is lost)
+//          3          3
+//    but stop on first empty line
 void shift_board(gameptr game_data, int line) {
     int y;
-    int check = 1;
+    bool check = true;
     for(y = line+1; check; y++){
-        check = 0;
+        check = false;
         for (int x = 0; x < BOARD_GAME_WIDTH; x++) {
-            if(game_data->board[y][x] != -1) check = 1;
+            if(game_data->board[y][x] != -1) check = true;
             game_data->board[y-1][x] = game_data->board[y][x];
         }
     }
 }
 
+//    look for full lines near actual block
 bool remove_lines(gameptr game_data){
     int n = game_data->act_block.n;
     int off_y = game_data->act_block.y;
@@ -127,6 +143,7 @@ bool remove_lines(gameptr game_data){
     return counter > 0;
 }
 
+//    copy actual block to the board
 void place_block(gameptr game_data){
     int n = game_data->act_block.n;
     int off_x = game_data->act_block.x;

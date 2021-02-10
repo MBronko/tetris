@@ -2,9 +2,9 @@
 #include <string.h>
 
 #include "../tools/common.h"
+#include "../tools/draw-tools.h"
 #include "../components/menu.h"
 #include "draw-menu.h"
-#include "../tools/draw-tools.h"
 
 void draw_menu(menuptr wmenu){
     int y = 2;
@@ -15,19 +15,19 @@ void draw_menu(menuptr wmenu){
     wattroff(wmenu->win, A_BOLD);
     y+=2;
 
-    for (int i = 0; i < n_options; ++i) {
-        int x = center_text(wmenu->win, options[i]);
+    for (int i = 0; i < global_n_options; ++i) {
+        int x = center_text(wmenu->win, global_options[i]);
         if (!wmenu->game_active && i == 0) {
             wattron(wmenu->win, A_DIM);
-            mvwprintw(wmenu->win, y, x, "%s", options[i]);
+            mvwprintw(wmenu->win, y, x, "%s", global_options[i]);
             wattroff(wmenu->win, A_DIM);
 
         } else if (wmenu->highlight == i + 1) {
             wattron(wmenu->win, A_REVERSE);
-            mvwprintw(wmenu->win, y, x, "%s", options[i]);
+            mvwprintw(wmenu->win, y, x, "%s", global_options[i]);
             wattroff(wmenu->win, A_REVERSE);
         } else
-            mvwprintw(wmenu->win, y, x, "%s", options[i]);
+            mvwprintw(wmenu->win, y, x, "%s", global_options[i]);
         y++;
     }
     clear();

@@ -6,12 +6,6 @@
 #include "draw-game.h"
 #include "../components/game.h"
 
-void draw_colored(WINDOW *win, int y, int x, int color, char str[]){
-    wattron(win, COLOR_PAIR(global_colors[color]));
-    mvwprintw(win, y, x, str);
-    wattroff(win, COLOR_PAIR(global_colors[color]));
-}
-
 void draw_board(gameptr game_data, bool draw_whole_board){
     char title[] = "Board";
     int min_y, max_y, min_x, max_x;
@@ -32,7 +26,7 @@ void draw_board(gameptr game_data, bool draw_whole_board){
         max_x = min(game_data->act_block.x + game_data->act_block.n + 1, BOARD_GAME_WIDTH);
     }
 
-//    draw dots
+//    draw dotted grid
     for (int y = min_y; y < max_y; y++) {
         for (int x = min_x; x < max_x; x++) {
             mvwprintw(game_data->win_board, BOARD_GAME_HEIGHT - y, 2*x+1, " .");
@@ -86,6 +80,7 @@ void draw_next_block(gameptr game_data){
     for (int y = 0; y < n; y++) {
         for (int x = 0; x < n; x++) {
             if(next_block.board[n*y+x]){
+//                                           magic numbers to make blocks in the middle of box
                 draw_colored(game_data->win_next, (BLOCK_WINDOW_HEIGHT)/2-y+y_off, 2*x+7-n, game_data->next_block, "  ");
             }
         }
@@ -94,7 +89,31 @@ void draw_next_block(gameptr game_data){
     wrefresh(game_data->win_next);
 }
 
+void draw_legend(gameptr game_data){
+    int y=1;
 
+//    make additional 2 lines empty space before item with this index
+    int space_index = 5;
+    char title[] = "Legend";
+    char *content[] = {
+            "LEFT      \xe2\x86\x90 A",
+            "RIGHT     \xe2\x86\x92 D",
+            "ROTATE\xE2\x86\xBB   \xe2\x86\x91 X",
+            "ROTATE\xE2\x86\xBA     z",
+            "DOWN      \xe2\x86\x93 S",
+            "PAUSE       P",
+            "QUIT        Q",
+    };
+    int n_content = sizeof(content)/sizeof(content[0]);
+    box(game_data->win_legend, 0, 0);
+    mvwprintw(game_data->win_legend, 0, center_text(game_data->win_legend, title), title);
+    for(int i=0; i<n_content; i++){
+        if(i == space_index) y+=2;
+        mvwprintw(game_data->win_legend, y, 1, content[i]);
+        y++;
+    }
+    wrefresh(game_data->win_legend);
+}
 
 void draw_scoreboard(gameptr game_data){
     wclear(game_data->win_score);
@@ -128,6 +147,7 @@ void game_resize(gameptr game_data){
         int scoreboard_y = legend_y + SPACE_BETWEEN_WINDOWS + LEGEND_WINDOW_HEIGHT;
 
         if(game_data->win_board != NULL && getmaxy(stdscr)>MIN_WINDOW_HEIGHT+1){
+//            if window is resized but game drawing shouldn't be changed then ignore (happens because of dividing int by 2)
             if(game_data->win_x != new_x || game_data->win_y != new_y){
                 mvwin(game_data->win_board, new_y, new_x);
                 mvwin(game_data->win_next, new_y, panel_x);

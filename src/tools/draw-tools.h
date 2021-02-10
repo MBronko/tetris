@@ -12,4 +12,6 @@ void del_game_win(gameptr game_data);
 
 void draw_legend(gameptr game_data);
 
+void draw_colored(WINDOW *win, int y, int x, int color, char str[]);
+
 #endif
