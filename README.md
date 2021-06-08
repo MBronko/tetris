@@ -1,3 +1,5 @@
 # Tetris made in c using ncurses library
 
-![game view](gameview.png)
+<p align="center">
+  <img src="preview.gif">
+</p>
